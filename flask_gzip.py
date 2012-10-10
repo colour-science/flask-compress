@@ -10,9 +10,6 @@ class Gzip(object):
         self.app.after_request(self.after_request)
 
     def after_request(self, response):
-        if self.app.debug:
-            return response
-
         accept_encoding = request.headers.get('Accept-Encoding', '') 
         if not accept_encoding:
             return response

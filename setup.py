@@ -1,30 +1,32 @@
 """
-Flask-gzip
+Flask-Gzip
 ------------
 
-Flask extension to compress all of your application's responses using gzip.
+Compress responses in your Flask app with gzip..
 """
 
 from setuptools import setup
 
 setup(
-    name='Flask-gzip',
-    version='0.1',
-    url='https://github.com/elasticsales/flask-gzip',
-    license='BSD',
-    author='Anthony Nemitz',
-    author_email='anemitz@gmail.com',
+    name='Flask-Gzip',
+    version='0.9',
+    url='https://github.com/wichitacode/flask-gzip',
+    license='MIT',
+    author='William Fagan',
+    author_email='will@wichitacode.com',
     description='Compress responses in your Flask app with gzip.',
     long_description=__doc__,
     py_modules=['flask_gzip'],
     zip_safe=False,
     include_package_data=True,
     platforms='any',
-    install_requires=['Flask'],
+    install_requires=[
+        'Flask'
+    ],
     classifiers=[
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
+        'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',

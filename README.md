@@ -1,6 +1,12 @@
-Flask-gzip
-==========
+Flask-Gzip
+=========
 
-Gzip flask responses
+[![Build Status](https://travis-ci.org/wichitacode/flask-gzip.png)](https://travis-ci.org/wichitacode/flask-gzip)
 
-Inspired by http://flask.pocoo.org/mailinglist/archive/2010/6/14/gzip-compression/#13cd7c9498f74538f48d2a4e557c8148
+Compress responses in your Flask app with gzip.
+
+The original author stopped responding to pull requests so this fork exists to maintain updates.
+
+Documentation
+-------------
+The latest documentation for Flask-Gzip can be found [here](https://flask-gzip.readthedocs.org/en/latest/).

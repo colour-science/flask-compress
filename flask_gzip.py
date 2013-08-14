@@ -16,11 +16,17 @@ class Gzip(object):
         if 'gzip' not in accept_encoding.lower():
             return response
 
-        if (200 > response.status_code >= 300) or len(response.data) < self.minimum_size or 'Content-Encoding' in response.headers:
+        if response.direct_passthrough:
+            return response
+
+        if (response.status_code not in xrange(200, 300) or
+            len(response.data) < self.minimum_size or
+            'Content-Encoding' in response.headers):
             return response
 
         gzip_buffer = StringIO.StringIO()
-        gzip_file = gzip.GzipFile(mode='wb', compresslevel=self.compress_level, fileobj=gzip_buffer)
+        gzip_file = gzip.GzipFile(mode='wb', compresslevel=self.compress_level,
+                                  fileobj=gzip_buffer)
         gzip_file.write(response.data)
         gzip_file.close()
         response.data = gzip_buffer.getvalue()

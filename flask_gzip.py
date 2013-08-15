@@ -1,5 +1,6 @@
 import gzip
 import StringIO
+
 from flask import request
 
 
@@ -8,6 +9,8 @@ class Gzip(object):
         self.app = app
         self.compress_level = compress_level
         self.minimum_size = minimum_size
+        self.mimetypes = ['text/html', 'text/css', 'text/xml',
+                          'application/json', 'application/javascript']
         self.app.after_request(self.after_request)
 
     def after_request(self, response):
@@ -16,8 +19,10 @@ class Gzip(object):
         if 'gzip' not in accept_encoding.lower():
             return response
 
-        if response.direct_passthrough:
+        if response.mimetype not in self.mimetypes:
             return response
+        else:
+            response.direct_passthrough = False
 
         if (response.status_code not in xrange(200, 300) or
             len(response.data) < self.minimum_size or
@@ -29,6 +34,7 @@ class Gzip(object):
                                   fileobj=gzip_buffer)
         gzip_file.write(response.data)
         gzip_file.close()
+
         response.data = gzip_buffer.getvalue()
         response.headers['Content-Encoding'] = 'gzip'
         response.headers['Content-Length'] = len(response.data)

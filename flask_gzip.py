@@ -61,8 +61,10 @@ class Gzip(object):
             'Content-Encoding' in response.headers):
             return response
 
+        level = self.app.config['GZIP_LEVEL']
+
         gzip_buffer = StringIO.StringIO()
-        gzip_file = gzip.GzipFile(mode='wb', compresslevel=self.compress_level,
+        gzip_file = gzip.GzipFile(mode='wb', compresslevel=level,
                                   fileobj=gzip_buffer)
         gzip_file.write(response.data)
         gzip_file.close()

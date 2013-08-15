@@ -57,7 +57,7 @@ class Gzip(object):
         response.direct_passthrough = False
 
         if (response.status_code not in xrange(200, 300) or
-            len(response.data) < self.minimum_size or
+            len(response.data) < self.app.config['GZIP_MIN_SIZE'] or
             'Content-Encoding' in response.headers):
             return response
 

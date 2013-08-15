@@ -5,6 +5,16 @@ from flask import request
 
 
 class Gzip(object):
+    """
+    The Gzip object allows your application to use Flask-Gzip.
+
+    When initialising a Gzip object you may optionally provide your
+    :class:`flask.Flask` application object if it is ready. Otherwise,
+    you may provide it later by using the :meth:`init_app` method.
+
+    :param app: optional :class:`flask.Flask` application object
+    :type app: :class:`flask.Flask` or None
+    """
     def __init__(self, app=None):
         """
         An alternative way to pass your :class:`flask.Flask` application

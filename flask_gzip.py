@@ -33,7 +33,7 @@ class Gzip(object):
             self.app.after_request(self.after_request)
 
     def after_request(self, response):
-        if app.debug and not app.config['GZIP_DEBUG']:
+        if self.app.debug and not self.app.config['GZIP_DEBUG']:
             return response
 
         accept_encoding = request.headers.get('Accept-Encoding', '')
@@ -41,7 +41,7 @@ class Gzip(object):
         if 'gzip' not in accept_encoding.lower():
             return response
 
-        if response.mimetype not in app.config['GZIP_MIMETYPES']:
+        if response.mimetype not in self.app.config['GZIP_MIMETYPES']:
             return response
 
         response.direct_passthrough = False

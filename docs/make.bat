@@ -99,9 +99,9 @@ if "%1" == "qthelp" (
 	echo.
 	echo.Build finished; now you can run "qcollectiongenerator" with the ^
 .qhcp project file in %BUILDDIR%/qthelp, like this:
-	echo.^> qcollectiongenerator %BUILDDIR%\qthelp\flask-gzip.qhcp
+	echo.^> qcollectiongenerator %BUILDDIR%\qthelp\flask-compress.qhcp
 	echo.To view the help file:
-	echo.^> assistant -collectionFile %BUILDDIR%\qthelp\flask-gzip.ghc
+	echo.^> assistant -collectionFile %BUILDDIR%\qthelp\flask-compress.ghc
 	goto end
 )
 

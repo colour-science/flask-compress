@@ -5,24 +5,46 @@ from flask import request
 
 
 class Gzip(object):
-    def __init__(self, app, compress_level=6, minimum_size=500):
+    def __init__(self, app=None):
+        """
+        An alternative way to pass your :class:`flask.Flask` application
+        object to Flask-Gzip. :meth:`init_app` also takes care of some
+        default `settings`_.
+
+        :param app: the :class:`flask.Flask` application object.
+        """
         self.app = app
-        self.compress_level = compress_level
-        self.minimum_size = minimum_size
-        self.mimetypes = ['text/html', 'text/css', 'text/xml',
-                          'application/json', 'application/javascript']
-        self.app.after_request(self.after_request)
+        if app is not None:
+            self.init_app(app)
+
+    def init_app(self, app):
+        defaults = [
+            ('GZIP_MIMETYPES', ['text/html', 'text/css', 'text/xml',
+                                'application/json', 'application/javascript']),
+            ('GZIP_DEBUG', False),
+            ('GZIP_LEVEL', 6),
+            ('GZIP_MIN_SIZE', 500)
+        ]
+
+        for k, v in defaults:
+            app.config.setdefault(k, v)
+
+        if app.config['GZIP_MIMETYPES']:
+            self.app.after_request(self.after_request)
 
     def after_request(self, response):
+        if app.debug and not app.config['GZIP_DEBUG']:
+            return response
+
         accept_encoding = request.headers.get('Accept-Encoding', '')
 
         if 'gzip' not in accept_encoding.lower():
             return response
 
-        if response.mimetype not in self.mimetypes:
+        if response.mimetype not in app.config['GZIP_MIMETYPES']:
             return response
-        else:
-            response.direct_passthrough = False
+
+        response.direct_passthrough = False
 
         if (response.status_code not in xrange(200, 300) or
             len(response.data) < self.minimum_size or

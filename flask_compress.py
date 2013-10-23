@@ -1,8 +1,8 @@
 import gzip
-try: 
-    from io import StringIO
+try:
+    from io import BytesIO as IO
 except:
-    import StringIO
+    import StringIO as IO
 
 from flask import request
 
@@ -67,7 +67,7 @@ class Compress(object):
 
         level = self.app.config['COMPRESS_LEVEL']
 
-        gzip_buffer = StringIO.StringIO()
+        gzip_buffer = IO()
         gzip_file = gzip.GzipFile(mode='wb', compresslevel=level,
                                   fileobj=gzip_buffer)
         gzip_file.write(response.data)

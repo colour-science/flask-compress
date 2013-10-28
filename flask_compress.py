@@ -33,7 +33,8 @@ class Compress(object):
     def init_app(self, app):
         defaults = [
             ('COMPRESS_MIMETYPES', ['text/html', 'text/css', 'text/xml',
-                                'application/json', 'application/javascript']),
+                                    'application/json',
+                                    'application/javascript']),
             ('COMPRESS_DEBUG', False),
             ('COMPRESS_LEVEL', 6),
             ('COMPRESS_MIN_SIZE', 500)

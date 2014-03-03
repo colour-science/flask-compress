@@ -78,7 +78,8 @@ class Compress(object):
         response.headers['Content-Encoding'] = 'gzip'
         vary = response.headers.get('Vary')
         if vary:
-            response.headers['Vary'] = vary + ', Accept-Encoding'
+            if 'Accept-Encoding' not in vary:
+                response.headers['Vary'] = vary + ', Accept-Encoding'
         else:
             response.headers['Vary'] = 'Accept-Encoding'
         response.headers['Content-Length'] = len(response.data)

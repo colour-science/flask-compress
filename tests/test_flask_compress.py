@@ -62,17 +62,6 @@ class UrlTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         return response
 
-    def test_compress_vary_header(self):
-        """ Tests Vary header doesn't get overwritten. """
-        test_value = 'test'
-
-        client = self.app.test_client()
-        headers = [('Accept-Encoding', 'gzip'), ('Vary', test_value)]
-        response = client.get('/large/', headers=headers)
-
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(test_value, response.headers['Vary'])
-
     def test_compress_debug(self):
         """ Tests COMPRESS_DEBUG correctly affects response data. """
         self.app.debug = True

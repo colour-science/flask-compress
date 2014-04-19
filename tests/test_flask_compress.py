@@ -32,6 +32,19 @@ class DefaultsTest(unittest.TestCase):
         self.assertEquals(self.app.config['COMPRESS_MIN_SIZE'], 500)
 
 
+class InitTests(unittest.TestCase):
+    def setUp(self):
+        self.app = Flask(__name__)
+        self.app.testing = True
+
+    def test_constructor_init(self):
+        Compress(self.app)
+
+    def test_delayed_init(self):
+        compress = Compress()
+        compress.init_app(self.app)
+
+
 class UrlTests(unittest.TestCase):
     def setUp(self):
         self.app = Flask(__name__)

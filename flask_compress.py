@@ -4,7 +4,7 @@ try:
 except:
     import StringIO as IO
 
-from flask import request
+from flask import request, current_app
 
 
 class Compress(object):
@@ -44,10 +44,15 @@ class Compress(object):
             app.config.setdefault(k, v)
 
         if app.config['COMPRESS_MIMETYPES']:
-            self.app.after_request(self.after_request)
+            app.after_request(self.after_request)
 
     def after_request(self, response):
-        if self.app.debug and not self.app.config['COMPRESS_DEBUG']:
+        if self.app:
+            app = self.app
+        else:
+            app = current_app
+
+        if app.debug and not app.config['COMPRESS_DEBUG']:
             return response
 
         accept_encoding = request.headers.get('Accept-Encoding', '')
@@ -55,18 +60,18 @@ class Compress(object):
         if 'gzip' not in accept_encoding.lower():
             return response
 
-        if response.mimetype not in self.app.config['COMPRESS_MIMETYPES']:
+        if response.mimetype not in app.config['COMPRESS_MIMETYPES']:
             return response
 
         response.direct_passthrough = False
 
         if (response.status_code < 200 or
             response.status_code >= 300 or
-            len(response.data) < self.app.config['COMPRESS_MIN_SIZE'] or
+            len(response.data) < app.config['COMPRESS_MIN_SIZE'] or
             'Content-Encoding' in response.headers):
             return response
 
-        level = self.app.config['COMPRESS_LEVEL']
+        level = app.config['COMPRESS_LEVEL']
 
         gzip_buffer = IO()
         gzip_file = gzip.GzipFile(mode='wb', compresslevel=level,

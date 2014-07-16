@@ -67,7 +67,7 @@ class Compress(object):
 
         if (response.status_code < 200 or
             response.status_code >= 300 or
-            len(response.data) < app.config['COMPRESS_MIN_SIZE'] or
+            response.content_length < app.config['COMPRESS_MIN_SIZE'] or
             'Content-Encoding' in response.headers):
             return response
 
@@ -82,7 +82,7 @@ class Compress(object):
         response.data = gzip_buffer.getvalue()
 
         response.headers['Content-Encoding'] = 'gzip'
-        response.headers['Content-Length'] = len(response.data)
+        response.headers['Content-Length'] = response.content_length
 
         vary = response.headers.get('Vary')
         if vary:

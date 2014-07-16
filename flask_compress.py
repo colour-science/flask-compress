@@ -1,4 +1,4 @@
-import gzip
+from gzip import GzipFile
 try:
     from io import BytesIO as IO
 except:
@@ -74,10 +74,10 @@ class Compress(object):
         level = app.config['COMPRESS_LEVEL']
 
         gzip_buffer = IO()
-        gzip_file = gzip.GzipFile(mode='wb', compresslevel=level,
-                                  fileobj=gzip_buffer)
-        gzip_file.write(response.data)
-        gzip_file.close()
+        with GzipFile(mode='wb',
+                      compresslevel=level,
+                      fileobj=gzip_buffer) as gzip_file:
+            gzip_file.write(response.data)
 
         response.data = gzip_buffer.getvalue()
 

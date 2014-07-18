@@ -1,4 +1,4 @@
-import gzip
+from gzip import GzipFile
 try:
     from io import BytesIO as IO
 except:
@@ -67,22 +67,22 @@ class Compress(object):
 
         if (response.status_code < 200 or
             response.status_code >= 300 or
-            len(response.data) < app.config['COMPRESS_MIN_SIZE'] or
+            response.content_length < app.config['COMPRESS_MIN_SIZE'] or
             'Content-Encoding' in response.headers):
             return response
 
         level = app.config['COMPRESS_LEVEL']
 
         gzip_buffer = IO()
-        gzip_file = gzip.GzipFile(mode='wb', compresslevel=level,
-                                  fileobj=gzip_buffer)
-        gzip_file.write(response.data)
-        gzip_file.close()
+        with GzipFile(mode='wb',
+                      compresslevel=level,
+                      fileobj=gzip_buffer) as gzip_file:
+            gzip_file.write(response.data)
 
         response.data = gzip_buffer.getvalue()
 
         response.headers['Content-Encoding'] = 'gzip'
-        response.headers['Content-Length'] = len(response.data)
+        response.headers['Content-Length'] = response.content_length
 
         vary = response.headers.get('Vary')
         if vary:

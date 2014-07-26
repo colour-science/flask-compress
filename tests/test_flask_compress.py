@@ -17,19 +17,19 @@ class DefaultsTest(unittest.TestCase):
         """ Tests COMPRESS_MIMETYPES default value is correctly set. """
         defaults = ['text/html', 'text/css', 'text/xml', 'application/json',
                     'application/javascript']
-        self.assertEquals(self.app.config['COMPRESS_MIMETYPES'], defaults)
+        self.assertEqual(self.app.config['COMPRESS_MIMETYPES'], defaults)
 
     def test_debug_default(self):
         """ Tests COMPRESS_DEBUG default value is correctly set. """
-        self.assertEquals(self.app.config['COMPRESS_DEBUG'], False)
+        self.assertEqual(self.app.config['COMPRESS_DEBUG'], False)
 
     def test_level_default(self):
         """ Tests COMPRESS_LEVEL default value is correctly set. """
-        self.assertEquals(self.app.config['COMPRESS_LEVEL'], 6)
+        self.assertEqual(self.app.config['COMPRESS_LEVEL'], 6)
 
     def test_min_size_default(self):
         """ Tests COMPRESS_MIN_SIZE default value is correctly set. """
-        self.assertEquals(self.app.config['COMPRESS_MIN_SIZE'], 500)
+        self.assertEqual(self.app.config['COMPRESS_MIN_SIZE'], 500)
 
 
 class InitTests(unittest.TestCase):
@@ -107,6 +107,11 @@ class UrlTests(unittest.TestCase):
         response = self.client_get('/large/')
         self.assertNotEqual(self.large_size, len(response.data))
 
+    def test_mimetype_mismatch(self):
+        """ Tests if mimetype not in COMPRESS_MIMETYPES. """
+        response = self.client_get('/static/1.png')
+        self.assertEqual(response.mimetype, 'image/png')
+        response.close()
 
 if __name__ == '__main__':
     unittest.main()

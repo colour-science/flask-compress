@@ -1,10 +1,20 @@
+import sys
 from gzip import GzipFile
-try:
-    from io import BytesIO as IO
-except:
-    import StringIO as IO
+from io import BytesIO as IO
 
 from flask import request, current_app
+
+
+if sys.version_info[:2] == (2, 6):
+    class GzipFile(GzipFile):
+        """ Backport of context manager support for python 2.6"""
+        def __enter__(self):
+            if self.fileobj is None:
+                raise ValueError("I/O operation on closed GzipFile object")
+            return self
+
+        def __exit__(self, *args):
+            self.close()
 
 
 class Compress(object):

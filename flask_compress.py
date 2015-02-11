@@ -45,7 +45,6 @@ class Compress(object):
             ('COMPRESS_MIMETYPES', ['text/html', 'text/css', 'text/xml',
                                     'application/json',
                                     'application/javascript']),
-            ('COMPRESS_DEBUG', False),
             ('COMPRESS_LEVEL', 6),
             ('COMPRESS_MIN_SIZE', 500)
         ]
@@ -61,9 +60,6 @@ class Compress(object):
             app = self.app
         else:
             app = current_app
-
-        if app.debug and not app.config['COMPRESS_DEBUG']:
-            return response
 
         accept_encoding = request.headers.get('Accept-Encoding', '')
 

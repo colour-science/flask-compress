@@ -99,12 +99,6 @@ required.
 `COMPRESS_MIN_SIZE`         Specifies the minimum file size threshold for
                             compressing files.
                             **Default:** `500`
-`COMPRESS_DEBUG`            By default, Flask-Compress will be switched off when
-                            running your application in `debug`_ mode, so that
-                            your responses are not compressed. If you wish to
-                            enable Flask-Compress in debug mode, set this value to
-                            `True`.
-                            **Default:** `False`
 =========================== ===================================================
 
 .. _debug: http://flask.pocoo.org/docs/config/#configuration-basics

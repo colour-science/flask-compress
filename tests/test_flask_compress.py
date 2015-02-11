@@ -19,10 +19,6 @@ class DefaultsTest(unittest.TestCase):
                     'application/javascript']
         self.assertEqual(self.app.config['COMPRESS_MIMETYPES'], defaults)
 
-    def test_debug_default(self):
-        """ Tests COMPRESS_DEBUG default value is correctly set. """
-        self.assertEqual(self.app.config['COMPRESS_DEBUG'], False)
-
     def test_level_default(self):
         """ Tests COMPRESS_LEVEL default value is correctly set. """
         self.assertEqual(self.app.config['COMPRESS_LEVEL'], 6)
@@ -74,18 +70,6 @@ class UrlTests(unittest.TestCase):
         response = client.get(ufs, headers=[('Accept-Encoding', 'gzip')])
         self.assertEqual(response.status_code, 200)
         return response
-
-    def test_compress_debug(self):
-        """ Tests COMPRESS_DEBUG correctly affects response data. """
-        self.app.debug = True
-
-        self.app.config['COMPRESS_DEBUG'] = True
-        response = self.client_get('/large/')
-        self.assertNotEqual(self.large_size, len(response.data))
-
-        self.app.config['COMPRESS_DEBUG'] = False
-        response = self.client_get('/large/')
-        self.assertEqual(self.large_size, len(response.data))
 
     def test_compress_level(self):
         """ Tests COMPRESS_LEVEL correctly affects response data. """

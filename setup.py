@@ -2,9 +2,7 @@
 Flask-Compress
 ------------
 
-Compress responses in your Flask app with gzip.
-
-Forked from https://github.com/wichitacode/flask-compress and removed the debugging option
+Compress responses in your Flask app with gzip..
 """
 
 from setuptools import setup

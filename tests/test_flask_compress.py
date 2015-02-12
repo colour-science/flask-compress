@@ -10,6 +10,7 @@ class DefaultsTest(unittest.TestCase):
     def setUp(self):
         self.app = Flask(__name__)
         self.app.testing = True
+        self.app.debug = False
 
         Compress(self.app)
 
@@ -18,6 +19,10 @@ class DefaultsTest(unittest.TestCase):
         defaults = ['text/html', 'text/css', 'text/xml', 'application/json',
                     'application/javascript']
         self.assertEqual(self.app.config['COMPRESS_MIMETYPES'], defaults)
+
+    def test_debug_default(self):
+        """ Tests app.debug default value is correctly set. """
+        self.assertEqual(self.app.config['DEBUG'], False)
 
     def test_level_default(self):
         """ Tests COMPRESS_LEVEL default value is correctly set. """

@@ -61,6 +61,9 @@ class Compress(object):
         else:
             app = current_app
 
+        if app.debug:
+            return response
+
         accept_encoding = request.headers.get('Accept-Encoding', '')
 
         if 'gzip' not in accept_encoding.lower():

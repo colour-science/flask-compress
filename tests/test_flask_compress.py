@@ -83,6 +83,13 @@ class UrlTests(unittest.TestCase):
 
         self.assertNotEqual(response1_size, response6_size)
 
+    def test_compress_debug(self):
+        """ Tests app.debug correctly affects response data. """
+        self.app.debug = True
+
+        response = self.client_get('/large/')
+        self.assertEqual(self.large_size, len(response.data))
+
     def test_compress_min_size(self):
         """ Tests COMPRESS_MIN_SIZE correctly affects response data. """
         response = self.client_get('/small/')

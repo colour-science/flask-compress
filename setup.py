@@ -10,7 +10,7 @@ Forked from https://github.com/wichitacode/flask-compress and removed the debugg
 from setuptools import setup
 
 setup(
-    name='Flask-Compress-nondebug',
+    name='Flask-Compress',
     version='1.0.2',
     url='https://github.com/wichitacode/flask-compress',
     license='MIT',

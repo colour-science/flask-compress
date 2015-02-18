@@ -86,9 +86,9 @@ class Compress(object):
         with GzipFile(mode='wb',
                       compresslevel=level,
                       fileobj=gzip_buffer) as gzip_file:
-            gzip_file.write(response.data)
+            gzip_file.write(response.get_data())
 
-        response.data = gzip_buffer.getvalue()
+        response.set_data(gzip_buffer.getvalue())
 
         response.headers['Content-Encoding'] = 'gzip'
         response.headers['Content-Length'] = response.content_length

@@ -1,6 +1,6 @@
 import sys
 from gzip import GzipFile
-from io import BytesIO as IO
+from io import BytesIO
 
 from flask import request, current_app
 
@@ -56,35 +56,22 @@ class Compress(object):
             app.after_request(self.after_request)
 
     def after_request(self, response):
-        if self.app:
-            app = self.app
-        else:
-            app = current_app
-
-        if app.debug:
-            return response
-
+        app = self.app or current_app
         accept_encoding = request.headers.get('Accept-Encoding', '')
 
-        if 'gzip' not in accept_encoding.lower():
-            return response
-
-        if response.mimetype not in app.config['COMPRESS_MIMETYPES']:
-            return response
-
-        response.direct_passthrough = False
-
-        if (response.status_code < 200 or
-            response.status_code >= 300 or
+        if (app.debug or
+            response.mimetype not in app.config['COMPRESS_MIMETYPES'] or
+            'gzip' not in accept_encoding.lower() or
+            not 200 <= response.status_code < 300 or
             response.content_length < app.config['COMPRESS_MIN_SIZE'] or
             'Content-Encoding' in response.headers):
             return response
 
-        level = app.config['COMPRESS_LEVEL']
+        response.direct_passthrough = False
 
-        gzip_buffer = IO()
+        gzip_buffer = BytesIO()
         with GzipFile(mode='wb',
-                      compresslevel=level,
+                      compresslevel=app.config['COMPRESS_LEVEL'],
                       fileobj=gzip_buffer) as gzip_file:
             gzip_file.write(response.data)
 
@@ -95,8 +82,8 @@ class Compress(object):
 
         vary = response.headers.get('Vary')
         if vary:
-            if 'Accept-Encoding' not in vary:
-                response.headers['Vary'] = vary + ', Accept-Encoding'
+            if 'accept-encoding' not in vary.lower():
+                response.headers['Vary'] = '{}, Accept-Encoding'.format(vary)
         else:
             response.headers['Vary'] = 'Accept-Encoding'
 

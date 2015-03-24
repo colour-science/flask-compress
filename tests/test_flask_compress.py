@@ -102,7 +102,6 @@ class UrlTests(unittest.TestCase):
         """ Tests if mimetype not in COMPRESS_MIMETYPES. """
         response = self.client_get('/static/1.png')
         self.assertEqual(response.mimetype, 'image/png')
-        response.close()
 
     def test_content_length_options(self):
         client = self.app.test_client()

@@ -104,5 +104,11 @@ class UrlTests(unittest.TestCase):
         self.assertEqual(response.mimetype, 'image/png')
         response.close()
 
+    def test_content_length_options(self):
+        client = self.app.test_client()
+        headers = [('Accept-Encoding', 'gzip')]
+        response = client.options('/small/', headers=headers)
+        self.assertEqual(response.status_code, 200)
+
 if __name__ == '__main__':
     unittest.main()

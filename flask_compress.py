@@ -59,8 +59,7 @@ class Compress(object):
         app = self.app or current_app
         accept_encoding = request.headers.get('Accept-Encoding', '')
 
-        if (app.debug or
-            response.mimetype not in app.config['COMPRESS_MIMETYPES'] or
+        if (response.mimetype not in app.config['COMPRESS_MIMETYPES'] or
             'gzip' not in accept_encoding.lower() or
             not 200 <= response.status_code < 300 or
             (response.content_length is not None and

@@ -21,29 +21,30 @@ and gzips the response data. This makes serving gzip compressed static files
 extremely easy.
 
 Internally, every time a request is made the extension will check if it matches
-one of the compressable mimetypes and automatically attach the appropriate
+one of the compressible MIME types and automatically attach the appropriate
 headers.
 
 
 Installation
 ============
 
-If you use pip then installation is simply::
+If you use pip then installation is simply:
 
-    $ pip install flask-compress
+.. code-block:: bash
 
-or, if you want the latest github version::
+    > pip install flask-compress
 
-    $ pip install git+git://github.com/wichitacode/flask-compress.git
+or, if you want the latest github version:
 
-You can also install Flask-Compress via Easy Install::
+.. code-block:: bash
 
-    $ easy_install flask-compress
+    > pip install git+git://github.com/wichitacode/flask-compress.git
 
-Dependencies
-------------
+You can also install Flask-Compress via Easy Install:
 
-There are no additional dependencies besides Flask itself.
+.. code-block:: bash
+
+    > easy_install flask-compress
 
 
 Using Flask-Compress
@@ -81,11 +82,6 @@ care of. In these cases, Flask-Compress provides a simple function,
 
 In terms of automatically compressing your assets using gzip, passing your
 ``Flask`` object to the ``Compress`` object is all that needs to be done.
-
-By default, Flask-Compress will be switched off when running your application
-in `debug`_ mode, so that your responses are not compressed.
-
-.. _debug: http://flask.pocoo.org/docs/config/#configuration-basics
 
 
 Flask-Compress Options

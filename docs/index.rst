@@ -82,6 +82,11 @@ care of. In these cases, Flask-Compress provides a simple function,
 In terms of automatically compressing your assets using gzip, passing your
 ``Flask`` object to the ``Compress`` object is all that needs to be done.
 
+By default, Flask-Compress will be switched off when running your application
+in `debug`_ mode, so that your responses are not compressed.
+
+.. _debug: http://flask.pocoo.org/docs/config/#configuration-basics
+
 
 Flask-Compress Options
 ----------------------
@@ -100,8 +105,6 @@ required.
                             compressing files.
                             **Default:** `500`
 =========================== ===================================================
-
-.. _debug: http://flask.pocoo.org/docs/config/#configuration-basics
 
 
 API Documentation

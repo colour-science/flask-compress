@@ -10,7 +10,7 @@ install:
   - pip install nose-cov
 
 script:
-  - nosetests --with-coverage --cover-package=flask-compress flask-compress
+  - nosetests --with-coverage
 
 after_success:
   - pip install coveralls

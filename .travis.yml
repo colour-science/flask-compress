@@ -5,5 +5,12 @@ python:
   - "3.3"
   - "3.4"
 
-install: pip install .
-script: nosetests
+install:
+  - pip install .
+
+script:
+  - nosetests --with-coverage --cover-package=flask-compress flask-compress
+
+after_success:
+  - pip install coveralls
+  - coveralls

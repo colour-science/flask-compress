@@ -1,5 +1,7 @@
 # Flask-Compress
 
+[![Version](https://img.shields.io/pypi/v/flask-compress.svg)](https://pypi.python.org/pypi/flask-compress)
+[![Downloads](https://img.shields.io/pypi/dm/flask-compress.svg)](https://pypi.python.org/pypi/flask-compress)
 [![Build Status](https://travis-ci.org/wichitacode/flask-compress.png)](https://travis-ci.org/wichitacode/flask-compress)
 
 Flask-Compress allows you to easily compress your [Flask](http://flask.pocoo.org/) application's responses with gzip.

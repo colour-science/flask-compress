@@ -17,6 +17,18 @@ if sys.version_info[:2] == (2, 6):
             self.close()
 
 
+class DictCache(object):
+
+    def __init__(self):
+        self.data = {}
+
+    def get(self, key):
+        return self.data.get(key)
+
+    def set(self, key, value):
+        self.data[key] = value
+
+
 class Compress(object):
     """
     The Compress object allows your application to use Flask-Compress.
@@ -46,11 +58,17 @@ class Compress(object):
                                     'application/json',
                                     'application/javascript']),
             ('COMPRESS_LEVEL', 6),
-            ('COMPRESS_MIN_SIZE', 500)
+            ('COMPRESS_MIN_SIZE', 500),
+            ('COMPRESS_CACHE_KEY', None),
+            ('COMPRESS_CACHE_BACKEND', None),
         ]
 
         for k, v in defaults:
             app.config.setdefault(k, v)
+
+        backend = app.config['COMPRESS_CACHE_BACKEND']
+        self.cache = backend() if backend else None
+        self.cache_key = app.config['COMPRESS_CACHE_KEY']
 
         if app.config['COMPRESS_MIMETYPES']:
             app.after_request(self.after_request)
@@ -69,13 +87,14 @@ class Compress(object):
 
         response.direct_passthrough = False
 
-        gzip_buffer = BytesIO()
-        with GzipFile(mode='wb',
-                      compresslevel=app.config['COMPRESS_LEVEL'],
-                      fileobj=gzip_buffer) as gzip_file:
-            gzip_file.write(response.get_data())
+        if self.cache:
+            key = self.cache_key(response)
+            gzip_content = self.cache.get(key) or self.compress(app, response)
+            self.cache.set(key, gzip_content)
+        else:
+            gzip_content = self.compress(app, response)
 
-        response.set_data(gzip_buffer.getvalue())
+        response.set_data(gzip_content)
 
         response.headers['Content-Encoding'] = 'gzip'
         response.headers['Content-Length'] = response.content_length
@@ -88,3 +107,11 @@ class Compress(object):
             response.headers['Vary'] = 'Accept-Encoding'
 
         return response
+
+    def compress(self, app, response):
+        gzip_buffer = BytesIO()
+        with GzipFile(mode='wb',
+                      compresslevel=app.config['COMPRESS_LEVEL'],
+                      fileobj=gzip_buffer) as gzip_file:
+            gzip_file.write(response.get_data())
+        return gzip_buffer.getvalue()

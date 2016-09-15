@@ -3,7 +3,7 @@ import os
 
 from flask import Flask, render_template
 
-from flask.ext.compress import Compress
+from flask_compress import Compress
 
 
 class DefaultsTest(unittest.TestCase):

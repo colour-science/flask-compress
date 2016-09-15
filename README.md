@@ -45,7 +45,7 @@ Flask-Compress is incredibly simple to use. In order to start gzip'ing your Flas
 
 ```python
 from flask import Flask
-from flask.ext.compress import Compress
+from flask_compress import Compress
 
 app = Flask(__name__)
 Compress(app)
@@ -55,7 +55,7 @@ In many cases, however, one cannot expect a Flask instance to be ready at import
 
 ```python
 from flask import Flask
-from flask.ext.compress import Compress
+from flask_compress import Compress
 
 compress = Compress()
 

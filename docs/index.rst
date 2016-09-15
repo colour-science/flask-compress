@@ -57,7 +57,7 @@ about your :class:`flask.Flask` application object.
 .. code-block:: python
 
     from flask import Flask
-    from flask.ext.compress import Compress
+    from flask_compress import Compress
 
     app = Flask(__name__)
     Compress(app)
@@ -71,7 +71,7 @@ care of. In these cases, Flask-Compress provides a simple function,
 .. code-block:: python
 
     from flask import Flask
-    from flask.ext.compress import Compress
+    from flask_compress import Compress
 
     compress = Compress()
 

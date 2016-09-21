@@ -9,7 +9,7 @@ from setuptools import setup
 
 setup(
     name='Flask-Compress',
-    version='1.3.0',
+    version='1.3.1',
     url='https://github.com/wichitacode/flask-compress',
     license='MIT',
     author='William Fagan',

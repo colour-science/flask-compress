@@ -24,19 +24,19 @@ Internally, every time a request is made the extension will check if it matches 
 If you use pip then installation is simply:
 
 ```shell
-> pip install flask-compress
+$ pip install flask-compress
 ```
 
 or, if you want the latest github version:
 
 ```shell
-> pip install git+git://github.com/wichitacode/flask-compress.git
+$ pip install git+git://github.com/wichitacode/flask-compress.git
 ```
 
 You can also install Flask-Compress via Easy Install:
 
 ```shell
-> easy_install flask-compress
+$ easy_install flask-compress
 ```
 
 

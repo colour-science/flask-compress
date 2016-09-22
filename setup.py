@@ -1,21 +1,13 @@
-"""
-Flask-Compress
-------------
+import setuptools
 
-Compress responses in your Flask app with gzip..
-"""
-
-from setuptools import setup
-
-setup(
+setuptools.setup(
     name='Flask-Compress',
     version='1.3.1',
-    url='https://github.com/wichitacode/flask-compress',
+    url='https://libwilliam.github.io/flask-compress/',
     license='MIT',
     author='William Fagan',
-    author_email='will@wichitacode.com',
+    author_email='libwilliam@gmail.com',
     description='Compress responses in your Flask app with gzip.',
-    long_description=__doc__,
     py_modules=['flask_compress'],
     zip_safe=False,
     include_package_data=True,

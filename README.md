@@ -2,14 +2,12 @@
 
 [![Version](https://img.shields.io/pypi/v/flask-compress.svg)](https://pypi.python.org/pypi/Flask-Compress)
 [![Build Status](https://travis-ci.org/libwilliam/flask-compress.png)](https://travis-ci.org/libwilliam/flask-compress)
-[![Coverage](https://coveralls.io/repos/wichitacode/flask-compress/badge.svg)](https://coveralls.io/github/wichitacode/flask-compress)
-[![License](https://img.shields.io/pypi/l/flask-compress.svg)](https://github.com/libwilliam/flask-compress/blob/master/LICENSE)
+[![Coverage](https://coveralls.io/repos/libwilliam/flask-compress/badge.svg)](https://coveralls.io/github/libwilliam/flask-compress)
+[![License](https://img.shields.io/pypi/l/flask-compress.svg)](https://github.com/libwilliam/flask-compress/blob/master/LICENSE.txt)
 
 Flask-Compress allows you to easily compress your [Flask](http://flask.pocoo.org/) application's responses with gzip.
 
 The preferred solution is to have a server (like [Nginx](http://wiki.nginx.org/Main)) automatically compress the static files for you. If you don't have that option Flask-Compress will solve the problem for you.
-
-Extended documentation for Flask-Compress can be found [here](https://flask-compress.readthedocs.org/en/latest/).
 
 
 ## How it works
@@ -30,7 +28,7 @@ $ pip install flask-compress
 or, if you want the latest github version:
 
 ```shell
-$ pip install git+git://github.com/wichitacode/flask-compress.git
+$ pip install git+git://github.com/libwilliam/flask-compress.git
 ```
 
 You can also install Flask-Compress via Easy Install:
@@ -42,7 +40,7 @@ $ easy_install flask-compress
 
 ## Using Flask-Compress
 
-Flask-Compress is incredibly simple to use. In order to start gzip'ing your Flask application's assets, the first thing to do is let Flask-Compress know about your [Flask](http://flask.pocoo.org/docs/api/#flask.Flask) application object.
+Flask-Compress is incredibly simple to use. In order to start gzip'ing your Flask application's assets, the first thing to do is let Flask-Compress know about your [flask.Flask](http://flask.pocoo.org/docs/latest/api/#flask.Flask) application object.
 
 ```python
 from flask import Flask
@@ -66,7 +64,7 @@ def start_app():
     return app
 ```
 
-In terms of automatically compressing your assets using gzip, passing your `Flask` object to the `Compress` object is all that needs to be done.
+In terms of automatically compressing your assets using gzip, passing your [`flask.Flask`](http://flask.pocoo.org/docs/latest/api/#flask.Flask) object to the `flask_compress.Compress` object is all that needs to be done.
 
 
 ## Options

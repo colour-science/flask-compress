@@ -40,7 +40,7 @@ $ easy_install flask-compress
 
 ## Using Flask-Compress
 
-Flask-Compress is incredibly simple to use. In order to start gzip'ing your Flask application's assets, the first thing to do is let Flask-Compress know about your [flask.Flask](http://flask.pocoo.org/docs/latest/api/#flask.Flask) application object.
+Flask-Compress is incredibly simple to use. In order to start gzip'ing your Flask application's assets, the first thing to do is let Flask-Compress know about your [`flask.Flask`](http://flask.pocoo.org/docs/latest/api/#flask.Flask) application object.
 
 ```python
 from flask import Flask
@@ -50,7 +50,7 @@ app = Flask(__name__)
 Compress(app)
 ```
 
-In many cases, however, one cannot expect a Flask instance to be ready at import time, and a common pattern is to return a Flask instance from within a function only after other configuration details have been taken care of. In these cases, Flask-Compress provides a simple function, `init_app`, which takes your application as an argument.
+In many cases, however, one cannot expect a Flask instance to be ready at import time, and a common pattern is to return a Flask instance from within a function only after other configuration details have been taken care of. In these cases, Flask-Compress provides a simple function, `flask_compress.Compress.init_app`, which takes your application as an argument.
 
 ```python
 from flask import Flask

@@ -8,6 +8,7 @@ setuptools.setup(
     author='William Fagan',
     author_email='libwilliam@gmail.com',
     description='Compress responses in your Flask app with gzip.',
+    long_description='Full documentation can be found on the Flask-Compress "Home Page".',
     py_modules=['flask_compress'],
     zip_safe=False,
     include_package_data=True,

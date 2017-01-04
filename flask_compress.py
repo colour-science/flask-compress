@@ -61,6 +61,7 @@ class Compress(object):
             ('COMPRESS_MIN_SIZE', 500),
             ('COMPRESS_CACHE_KEY', None),
             ('COMPRESS_CACHE_BACKEND', None),
+            ('COMPRESS_REGISTER', True),
         ]
 
         for k, v in defaults:
@@ -70,7 +71,8 @@ class Compress(object):
         self.cache = backend() if backend else None
         self.cache_key = app.config['COMPRESS_CACHE_KEY']
 
-        if app.config['COMPRESS_MIMETYPES']:
+        if (app.config['COMPRESS_REGISTER'] and
+                app.config['COMPRESS_MIMETYPES']):
             app.after_request(self.after_request)
 
     def after_request(self, response):

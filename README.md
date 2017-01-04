@@ -76,3 +76,4 @@ Within your Flask application's settings you can provide the following settings 
 | `COMPRESS_MIMETYPES` | Set the list of mimetypes to compress here. | `[`<br>`'text/html',`<br>`'text/css',`<br>`'text/xml',`<br>`'application/json',`<br>`'application/javascript'`<br>`]` |
 | `COMPRESS_LEVEL` | Specifies the gzip compression level. | `6` |
 | `COMPRESS_MIN_SIZE` | Specifies the minimum file size threshold for compressing files. | `500` |
+| `COMPRESS_REGISTER` | Specifies if compression should be automatically registered. | `True` |

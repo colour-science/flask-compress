@@ -59,7 +59,7 @@ from flask_compress import Compress
 compress = Compress()
 
 def start_app():
-	app = Flask(__name__)
+    app = Flask(__name__)
     compress.init_app(app)
     return app
 ```

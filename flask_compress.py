@@ -1,3 +1,8 @@
+
+# Authors: William Fagan
+# Copyright (c) 2013-2017 William Fagan
+# License: The MIT License (MIT)
+
 import sys
 from gzip import GzipFile
 from io import BytesIO

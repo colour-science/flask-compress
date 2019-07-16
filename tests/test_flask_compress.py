@@ -27,6 +27,10 @@ class DefaultsTest(unittest.TestCase):
         """ Tests COMPRESS_MIN_SIZE default value is correctly set. """
         self.assertEqual(self.app.config['COMPRESS_MIN_SIZE'], 500)
 
+    def test_algorithm_default(self):
+        """ Tests COMPRESS_ALGORITHM default value is correctly set. """
+        self.assertEqual(self.app.config['COMPRESS_ALGORITHM'], 'gzip')
+
 
 class InitTests(unittest.TestCase):
     def setUp(self):
@@ -70,6 +74,16 @@ class UrlTests(unittest.TestCase):
         response = client.get(ufs, headers=[('Accept-Encoding', 'gzip')])
         self.assertEqual(response.status_code, 200)
         return response
+
+    def test_br_algorithm(self):
+        client = self.app.test_client()
+        headers = [('Accept-Encoding', 'br')]
+
+        response = client.options('/small/', headers=headers)
+        self.assertEqual(response.status_code, 200)
+
+        response = client.options('/large/', headers=headers)
+        self.assertEqual(response.status_code, 200)
 
     def test_compress_level(self):
         """ Tests COMPRESS_LEVEL correctly affects response data. """

@@ -7,14 +7,15 @@ setuptools.setup(
     license='MIT',
     author='William Fagan',
     author_email='libwilliam@gmail.com',
-    description='Compress responses in your Flask app with gzip.',
+    description='Compress responses in your Flask app with gzip or brotli.',
     long_description='Full documentation can be found on the Flask-Compress "Home Page".',
     py_modules=['flask_compress'],
     zip_safe=False,
     include_package_data=True,
     platforms='any',
     install_requires=[
-        'Flask'
+        'flask',
+        'brotli'
     ],
     test_suite='tests',
     classifiers=[

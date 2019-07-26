@@ -7,6 +7,7 @@ import sys
 from gzip import GzipFile
 from io import BytesIO
 
+import brotli
 from flask import request, current_app
 
 
@@ -67,6 +68,7 @@ class Compress(object):
             ('COMPRESS_CACHE_KEY', None),
             ('COMPRESS_CACHE_BACKEND', None),
             ('COMPRESS_REGISTER', True),
+            ('COMPRESS_ALGORITHM', 'gzip'),
         ]
 
         for k, v in defaults:
@@ -85,7 +87,8 @@ class Compress(object):
         accept_encoding = request.headers.get('Accept-Encoding', '')
 
         if (response.mimetype not in app.config['COMPRESS_MIMETYPES'] or
-            'gzip' not in accept_encoding.lower() or
+            ('gzip' not in accept_encoding.lower() and app.config['COMPRESS_ALGORITHM'] == 'gzip') or
+            ('br' not in accept_encoding.lower() and app.config['COMPRESS_ALGORITHM'] == 'br') or
             not 200 <= response.status_code < 300 or
             (response.content_length is not None and
              response.content_length < app.config['COMPRESS_MIN_SIZE']) or
@@ -96,16 +99,16 @@ class Compress(object):
 
         if self.cache:
             key = self.cache_key(request)
-            gzip_content = self.cache.get(key)
-            if gzip_content is None:
-                gzip_content = self.compress(app, response)
-            self.cache.set(key, gzip_content)
+            compressed_content = self.cache.get(key)
+            if compressed_content is None:
+                compressed_content = self.compress(app, response)
+            self.cache.set(key, compressed_content)
         else:
-            gzip_content = self.compress(app, response)
+            compressed_content = self.compress(app, response)
 
-        response.set_data(gzip_content)
+        response.set_data(compressed_content)
 
-        response.headers['Content-Encoding'] = 'gzip'
+        response.headers['Content-Encoding'] = app.config['COMPRESS_ALGORITHM']
         response.headers['Content-Length'] = response.content_length
 
         vary = response.headers.get('Vary')
@@ -118,9 +121,12 @@ class Compress(object):
         return response
 
     def compress(self, app, response):
-        gzip_buffer = BytesIO()
-        with GzipFile(mode='wb',
-                      compresslevel=app.config['COMPRESS_LEVEL'],
-                      fileobj=gzip_buffer) as gzip_file:
-            gzip_file.write(response.get_data())
-        return gzip_buffer.getvalue()
+        if app.config['COMPRESS_ALGORITHM'] == 'gzip':
+            gzip_buffer = BytesIO()
+            with GzipFile(mode='wb',
+                          compresslevel=app.config['COMPRESS_LEVEL'],
+                          fileobj=gzip_buffer) as gzip_file:
+                gzip_file.write(response.get_data())
+            return gzip_buffer.getvalue()
+        elif app.config['COMPRESS_ALGORITHM'] == 'br':
+            return brotli.compress(response.get_data())

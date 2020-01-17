@@ -3,7 +3,7 @@ import setuptools
 setuptools.setup(
     name='Flask-Compress',
     version='1.3.1',
-    url='https://libwilliam.github.io/flask-compress/',
+    url='https://github.com/colour-science/flask-compress',
     license='MIT',
     author='William Fagan',
     author_email='libwilliam@gmail.com',

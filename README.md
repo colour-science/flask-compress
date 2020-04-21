@@ -28,7 +28,7 @@ $ pip install flask-compress
 or, if you want the latest github version:
 
 ```shell
-$ pip install git+git://github.com/libwilliam/flask-compress.git
+$ pip install git+git://github.com/colour-science/flask-compress.git
 ```
 
 You can also install Flask-Compress via Easy Install:
@@ -79,3 +79,4 @@ Within your Flask application's settings you can provide the following settings 
 | `COMPRESS_CACHE_KEY` | Specifies the cache key method for lookup/storage of response data. | `None` |
 | `COMPRESS_CACHE_BACKEND` | Specified the backend for storing the cached response data. | `None` |
 | `COMPRESS_REGISTER` | Specifies if compression should be automatically registered. | `True` |
+| `COMPRESS_ALGORITHM` | Compression algorithm used: `gzip` or `br`. | `gzip` |

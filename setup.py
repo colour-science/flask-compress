@@ -1,14 +1,17 @@
 import setuptools
 
+with open('README.md') as fl:
+    LONG_DESCRIPTION = fl.read()
+
 setuptools.setup(
     name='Flask-Compress',
-    version='1.3.1',
+    version='1.5.0',
     url='https://github.com/colour-science/flask-compress',
     license='MIT',
-    author='William Fagan',
-    author_email='libwilliam@gmail.com',
+    author='Thomas Mansencal',
+    author_email='thomas.mansencal@gmail.com',
     description='Compress responses in your Flask app with gzip or brotli.',
-    long_description='Full documentation can be found on the Flask-Compress "Home Page".',
+    long_description=LONG_DESCRIPTION,
     py_modules=['flask_compress'],
     zip_safe=False,
     include_package_data=True,

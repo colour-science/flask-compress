@@ -12,6 +12,7 @@ setuptools.setup(
     author_email='thomas.mansencal@gmail.com',
     description='Compress responses in your Flask app with gzip or brotli.',
     long_description=LONG_DESCRIPTION,
+    long_description_content_type='text/markdown',
     py_modules=['flask_compress'],
     zip_safe=False,
     include_package_data=True,

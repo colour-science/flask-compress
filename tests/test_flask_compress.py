@@ -130,6 +130,13 @@ class CompressionAlgoTests(unittest.TestCase):
         self.app = Flask(__name__)
         self.app.testing = True
 
+        small_path = os.path.join(os.getcwd(), 'tests', 'templates', 'small.html')
+        self.small_size = os.path.getsize(small_path) - 1
+
+        @self.app.route('/small/')
+        def small():
+            return render_template('small.html')
+
     def test_setting_compress_algorithm_simple_string(self):
         """ Test that a single entry in `COMPRESS_ALGORITHM` still works for backwards compatibility """
         self.app.config['COMPRESS_ALGORITHM'] = 'gzip'
@@ -213,6 +220,23 @@ class CompressionAlgoTests(unittest.TestCase):
         self.app.config['COMPRESS_ALGORITHM'] = ['gzip', 'br', 'deflate']
         c = Compress(self.app)
         self.assertEqual(c._choose_compress_algorithm(accept_encoding), 'br')
+
+    def test_content_encoding_is_correct(self):
+        """ Test that the `Content-Encoding` header matches the compression algorithm """
+        self.app.config['COMPRESS_ALGORITHM'] = ['br', 'gzip']
+        Compress(self.app)  # we changed settings, so we need to re-init the app
+
+        headers_gzip = [('Accept-Encoding', 'gzip')]
+        client = self.app.test_client()
+        response_gzip = client.options('/small/', headers=headers_gzip)
+        self.assertIn('Content-Encoding', response_gzip.headers)
+        self.assertEqual(response_gzip.headers.get('Content-Encoding'), 'gzip')
+
+        headers_br = [('Accept-Encoding', 'br')]
+        client = self.app.test_client()
+        response_br = client.options('/small/', headers=headers_br)
+        self.assertIn('Content-Encoding', response_br.headers)
+        self.assertEqual(response_br.headers.get('Content-Encoding'), 'br')
 
 
 if __name__ == '__main__':

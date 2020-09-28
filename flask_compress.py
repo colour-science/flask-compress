@@ -178,7 +178,7 @@ class Compress(object):
 
         response.set_data(compressed_content)
 
-        response.headers['Content-Encoding'] = app.config['COMPRESS_ALGORITHM']
+        response.headers['Content-Encoding'] = chosen_algorithm
         response.headers['Content-Length'] = response.content_length
 
         vary = response.headers.get('Vary')

@@ -127,6 +127,9 @@ class CompressionAlgoTests(unittest.TestCase):
     def setUp(self):
         super(CompressionAlgoTests, self).setUp()
 
+        # Create the app here but don't call `Compress()` on it just yet; we need
+        # to be able to modify the settings in various tests. Calling `Compress(self.app)`
+        # twice would result in two `@after_request` handlers, which would be bad.
         self.app = Flask(__name__)
         self.app.testing = True
 
@@ -224,7 +227,7 @@ class CompressionAlgoTests(unittest.TestCase):
     def test_content_encoding_is_correct(self):
         """ Test that the `Content-Encoding` header matches the compression algorithm """
         self.app.config['COMPRESS_ALGORITHM'] = ['br', 'gzip']
-        Compress(self.app)  # we changed settings, so we need to re-init the app
+        Compress(self.app)
 
         headers_gzip = [('Accept-Encoding', 'gzip')]
         client = self.app.test_client()

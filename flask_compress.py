@@ -5,6 +5,7 @@
 
 import sys
 from gzip import GzipFile
+import zlib
 from io import BytesIO
 
 from collections import defaultdict
@@ -74,7 +75,7 @@ class Compress(object):
             ('COMPRESS_CACHE_KEY', None),
             ('COMPRESS_CACHE_BACKEND', None),
             ('COMPRESS_REGISTER', True),
-            ('COMPRESS_ALGORITHM', ['br', 'gzip']),
+            ('COMPRESS_ALGORITHM', ['br', 'gzip', 'deflate']),
         ]
 
         for k, v in defaults:
@@ -102,7 +103,7 @@ class Compress(object):
         means the client prefers that algorithm more).
 
         :param accept_encoding_header: Content of the `Accept-Encoding` header
-        :return: Name of a compression algorithm (e.g. `gzip` or `br`) or `None` if
+        :return: name of a compression algorithm (`gzip`, `deflate`, `br`) or `None` if
             the client and server don't agree on any.
         """
         # Map quality factors to requested algorithm names.
@@ -202,6 +203,8 @@ class Compress(object):
                           fileobj=gzip_buffer) as gzip_file:
                 gzip_file.write(response.get_data())
             return gzip_buffer.getvalue()
+        elif algorithm == 'deflate':
+            return zlib.compress(response.get_data())
         elif algorithm == 'br':
             return brotli.compress(response.get_data(),
                                    mode=app.config['COMPRESS_BR_MODE'],

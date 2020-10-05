@@ -70,7 +70,7 @@ class Compress(object):
             ('COMPRESS_CACHE_KEY', None),
             ('COMPRESS_CACHE_BACKEND', None),
             ('COMPRESS_REGISTER', True),
-            ('COMPRESS_ALGORITHM', 'gzip'),
+            ('COMPRESS_ALGORITHM', ['br', 'gzip']),
         ]
 
         for k, v in defaults:

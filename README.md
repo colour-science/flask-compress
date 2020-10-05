@@ -88,4 +88,4 @@ Within your Flask application's settings you can provide the following settings 
 | `COMPRESS_CACHE_KEY` | Specifies the cache key method for lookup/storage of response data. | `None` |
 | `COMPRESS_CACHE_BACKEND` | Specified the backend for storing the cached response data. | `None` |
 | `COMPRESS_REGISTER` | Specifies if compression should be automatically registered. | `True` |
-| `COMPRESS_ALGORITHM` | Supported compression algorithms, either comma-separated (`'gzip, br'`) or a list (`['br', 'gzip']`)  | `gzip` |
+| `COMPRESS_ALGORITHM` | Supported compression algorithms. | `['br', 'gzip']` |

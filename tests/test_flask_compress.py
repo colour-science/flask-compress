@@ -29,7 +29,7 @@ class DefaultsTest(unittest.TestCase):
 
     def test_algorithm_default(self):
         """ Tests COMPRESS_ALGORITHM default value is correctly set. """
-        self.assertEqual(self.app.config['COMPRESS_ALGORITHM'], 'gzip')
+        self.assertEqual(self.app.config['COMPRESS_ALGORITHM'], ['br', 'gzip'])
 
 
 class InitTests(unittest.TestCase):

@@ -116,5 +116,131 @@ class UrlTests(unittest.TestCase):
         response = client.options('/small/', headers=headers)
         self.assertEqual(response.status_code, 200)
 
+
+class CompressionAlgoTests(unittest.TestCase):
+    """
+    Test different scenarios for compression algorithm negotiation between
+    client and server. Please note that algorithm names (even the "supported"
+    ones) in these tests **do not** indicate that all of these are actually
+    supported by this extension.
+    """
+    def setUp(self):
+        super(CompressionAlgoTests, self).setUp()
+
+        # Create the app here but don't call `Compress()` on it just yet; we need
+        # to be able to modify the settings in various tests. Calling `Compress(self.app)`
+        # twice would result in two `@after_request` handlers, which would be bad.
+        self.app = Flask(__name__)
+        self.app.testing = True
+
+        small_path = os.path.join(os.getcwd(), 'tests', 'templates', 'small.html')
+        self.small_size = os.path.getsize(small_path) - 1
+
+        @self.app.route('/small/')
+        def small():
+            return render_template('small.html')
+
+    def test_setting_compress_algorithm_simple_string(self):
+        """ Test that a single entry in `COMPRESS_ALGORITHM` still works for backwards compatibility """
+        self.app.config['COMPRESS_ALGORITHM'] = 'gzip'
+        c = Compress(self.app)
+        self.assertListEqual(c.enabled_algorithms, ['gzip'])
+
+    def test_setting_compress_algorithm_cs_string(self):
+        """ Test that `COMPRESS_ALGORITHM` can be a comma-separated string """
+        self.app.config['COMPRESS_ALGORITHM'] = 'gzip, br, zstd'
+        c = Compress(self.app)
+        self.assertListEqual(c.enabled_algorithms, ['gzip', 'br', 'zstd'])
+
+    def test_setting_compress_algorithm_list(self):
+        """ Test that `COMPRESS_ALGORITHM` can be a list of strings """
+        self.app.config['COMPRESS_ALGORITHM'] = ['gzip', 'br', 'deflate']
+        c = Compress(self.app)
+        self.assertListEqual(c.enabled_algorithms, ['gzip', 'br', 'deflate'])
+
+    def test_one_algo_supported(self):
+        """ Tests requesting a single supported compression algorithm """
+        accept_encoding = 'gzip'
+        self.app.config['COMPRESS_ALGORITHM'] = ['br', 'gzip']
+        c = Compress(self.app)
+        self.assertEqual(c._choose_compress_algorithm(accept_encoding), 'gzip')
+
+    def test_one_algo_unsupported(self):
+        """ Tests requesting single unsupported compression algorithm """
+        accept_encoding = 'some-alien-algorithm'
+        self.app.config['COMPRESS_ALGORITHM'] = ['br', 'gzip']
+        c = Compress(self.app)
+        self.assertIsNone(c._choose_compress_algorithm(accept_encoding))
+
+    def test_multiple_algos_supported(self):
+        """ Tests requesting multiple supported compression algorithms """
+        accept_encoding = 'br, gzip, zstd'
+        self.app.config['COMPRESS_ALGORITHM'] = ['zstd', 'br', 'gzip']
+        c = Compress(self.app)
+        # When the decision is tied, we expect to see the first server-configured algorithm
+        self.assertEqual(c._choose_compress_algorithm(accept_encoding), 'zstd')
+
+    def test_multiple_algos_unsupported(self):
+        """ Tests requesting multiple unsupported compression algorithms """
+        accept_encoding = 'future-algo, alien-algo, forbidden-algo'
+        self.app.config['COMPRESS_ALGORITHM'] = ['zstd', 'br', 'gzip']
+        c = Compress(self.app)
+        self.assertIsNone(c._choose_compress_algorithm(accept_encoding))
+
+    def test_multiple_algos_with_wildcard(self):
+        """ Tests requesting multiple unsupported compression algorithms and a wildcard """
+        accept_encoding = 'future-algo, alien-algo, forbidden-algo, *'
+        self.app.config['COMPRESS_ALGORITHM'] = ['zstd', 'br', 'gzip']
+        c = Compress(self.app)
+        # We expect to see the first server-configured algorithm
+        self.assertEqual(c._choose_compress_algorithm(accept_encoding), 'zstd')
+
+    def test_multiple_algos_with_different_quality(self):
+        """ Tests requesting multiple supported compression algorithms with different q-factors """
+        accept_encoding = 'zstd;q=0.8, br;q=0.9, gzip;q=0.5'
+        self.app.config['COMPRESS_ALGORITHM'] = ['zstd', 'br', 'gzip']
+        c = Compress(self.app)
+        self.assertEqual(c._choose_compress_algorithm(accept_encoding), 'br')
+
+    def test_multiple_algos_with_equal_quality(self):
+        """ Tests requesting multiple supported compression algorithms with equal q-factors """
+        accept_encoding = 'zstd;q=0.5, br;q=0.5, gzip;q=0.5'
+        self.app.config['COMPRESS_ALGORITHM'] = ['gzip', 'br', 'zstd']
+        c = Compress(self.app)
+        # We expect to see the first server-configured algorithm
+        self.assertEqual(c._choose_compress_algorithm(accept_encoding), 'gzip')
+
+    def test_default_quality_is_1(self):
+        """ Tests that when making mixed-quality requests, the default q-factor is 1.0 """
+        accept_encoding = 'deflate, br;q=0.999, gzip;q=0.5'
+        self.app.config['COMPRESS_ALGORITHM'] = ['gzip', 'br', 'deflate']
+        c = Compress(self.app)
+        self.assertEqual(c._choose_compress_algorithm(accept_encoding), 'deflate')
+
+    def test_default_wildcard_quality_is_0(self):
+        """ Tests that a wildcard has a default q-factor of 0.0 """
+        accept_encoding = 'br;q=0.001, *'
+        self.app.config['COMPRESS_ALGORITHM'] = ['gzip', 'br', 'deflate']
+        c = Compress(self.app)
+        self.assertEqual(c._choose_compress_algorithm(accept_encoding), 'br')
+
+    def test_content_encoding_is_correct(self):
+        """ Test that the `Content-Encoding` header matches the compression algorithm """
+        self.app.config['COMPRESS_ALGORITHM'] = ['br', 'gzip']
+        Compress(self.app)
+
+        headers_gzip = [('Accept-Encoding', 'gzip')]
+        client = self.app.test_client()
+        response_gzip = client.options('/small/', headers=headers_gzip)
+        self.assertIn('Content-Encoding', response_gzip.headers)
+        self.assertEqual(response_gzip.headers.get('Content-Encoding'), 'gzip')
+
+        headers_br = [('Accept-Encoding', 'br')]
+        client = self.app.test_client()
+        response_br = client.options('/small/', headers=headers_br)
+        self.assertIn('Content-Encoding', response_br.headers)
+        self.assertEqual(response_br.headers.get('Content-Encoding'), 'br')
+
+
 if __name__ == '__main__':
     unittest.main()

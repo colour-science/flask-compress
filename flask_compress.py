@@ -7,6 +7,8 @@ import sys
 from gzip import GzipFile
 from io import BytesIO
 
+from collections import defaultdict
+
 import brotli
 from flask import request, current_app
 
@@ -78,17 +80,85 @@ class Compress(object):
         self.cache = backend() if backend else None
         self.cache_key = app.config['COMPRESS_CACHE_KEY']
 
+        algo = app.config['COMPRESS_ALGORITHM']
+        if isinstance(algo, str):
+            self.enabled_algorithms = [i.strip() for i in algo.split(',')]
+        else:
+            self.enabled_algorithms = algo
+
         if (app.config['COMPRESS_REGISTER'] and
                 app.config['COMPRESS_MIMETYPES']):
             app.after_request(self.after_request)
+
+    def _choose_compress_algorithm(self, accept_encoding_header):
+        """
+        Determine which compression algorithm we're going to use based on the
+        client request. The `Accept-Encoding` header may list one or more desired
+        algorithms, together with a "quality factor" for each one (higher quality
+        means the client prefers that algorithm more).
+
+        :param accept_encoding_header: Content of the `Accept-Encoding` header
+        :return: Name of a compression algorithm (e.g. `gzip` or `br`) or `None` if
+            the client and server don't agree on any.
+        """
+        # Map quality factors to requested algorithm names.
+        algos_by_quality = defaultdict(set)
+
+        # A flag denoting that client requested using any (`*`) algorithm,
+        # in case a specific one is not supported by the server
+        fallback_to_any = False
+
+        for part in accept_encoding_header.lower().split(','):
+            part = part.strip()
+            quality = 1.0
+
+            if ';q=' in part:
+                # If the client associated a quality factor with an algorithm,
+                # try to parse it. We could do the matching using a regex, but
+                # the format is so simple that it would be overkill.
+                algo = part.split(';')[0].strip()
+                try:
+                    quality = float(part.split('=')[1].strip())
+                except ValueError:
+                    pass
+            else:
+                # Otherwise, use the default quality
+                algo = part
+
+            algos_by_quality[quality].add(algo)
+            fallback_to_any = fallback_to_any or (algo == '*')
+
+        # Choose the algorithm with the highest quality factor that the server supports.
+        #
+        # If there are multiple equally good options, choose the first supported algorithm
+        # from server configuration.
+        #
+        # If the server doesn't support any algorithm that the client requested but
+        # there's a special wildcard algorithm request (`*`), choose the first supported
+        # algorithm.
+        server_algo_set = set(self.enabled_algorithms)
+        for _, requested_algo_set in sorted(algos_by_quality.items(), reverse=True):
+            viable_algos = server_algo_set & requested_algo_set
+            if len(viable_algos) == 1:
+                return viable_algos.pop()
+            elif len(viable_algos) > 1:
+                for server_algo in self.enabled_algorithms:
+                    if server_algo in viable_algos:
+                        return server_algo
+        else:
+            if fallback_to_any:
+                return self.enabled_algorithms[0]
+
+        return None
 
     def after_request(self, response):
         app = self.app or current_app
         accept_encoding = request.headers.get('Accept-Encoding', '')
 
+        chosen_algorithm = self._choose_compress_algorithm(accept_encoding)
+
         if (response.mimetype not in app.config['COMPRESS_MIMETYPES'] or
-            ('gzip' not in accept_encoding.lower() and app.config['COMPRESS_ALGORITHM'] == 'gzip') or
-            ('br' not in accept_encoding.lower() and app.config['COMPRESS_ALGORITHM'] == 'br') or
+            chosen_algorithm is None or
             not 200 <= response.status_code < 300 or
             (response.content_length is not None and
              response.content_length < app.config['COMPRESS_MIN_SIZE']) or
@@ -101,14 +171,14 @@ class Compress(object):
             key = self.cache_key(request)
             compressed_content = self.cache.get(key)
             if compressed_content is None:
-                compressed_content = self.compress(app, response)
+                compressed_content = self.compress(app, response, chosen_algorithm)
             self.cache.set(key, compressed_content)
         else:
-            compressed_content = self.compress(app, response)
+            compressed_content = self.compress(app, response, chosen_algorithm)
 
         response.set_data(compressed_content)
 
-        response.headers['Content-Encoding'] = app.config['COMPRESS_ALGORITHM']
+        response.headers['Content-Encoding'] = chosen_algorithm
         response.headers['Content-Length'] = response.content_length
 
         vary = response.headers.get('Vary')
@@ -120,13 +190,13 @@ class Compress(object):
 
         return response
 
-    def compress(self, app, response):
-        if app.config['COMPRESS_ALGORITHM'] == 'gzip':
+    def compress(self, app, response, algorithm):
+        if algorithm == 'gzip':
             gzip_buffer = BytesIO()
             with GzipFile(mode='wb',
                           compresslevel=app.config['COMPRESS_LEVEL'],
                           fileobj=gzip_buffer) as gzip_file:
                 gzip_file.write(response.get_data())
             return gzip_buffer.getvalue()
-        elif app.config['COMPRESS_ALGORITHM'] == 'br':
+        elif algorithm == 'br':
             return brotli.compress(response.get_data())

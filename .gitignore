@@ -6,3 +6,4 @@ venv*/
 *~
 cover/
 .coverage
+.env*

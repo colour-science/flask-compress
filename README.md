@@ -5,7 +5,7 @@
 [![Coverage](https://coveralls.io/repos/libwilliam/flask-compress/badge.svg)](https://coveralls.io/github/libwilliam/flask-compress)
 [![License](https://img.shields.io/pypi/l/flask-compress.svg)](https://github.com/libwilliam/flask-compress/blob/master/LICENSE.txt)
 
-Flask-Compress allows you to easily compress your [Flask](http://flask.pocoo.org/) application's responses with gzip.
+Flask-Compress allows you to easily compress your [Flask](http://flask.pocoo.org/) application's responses with gzip, deflate or brotli.
 
 The preferred solution is to have a server (like [Nginx](http://wiki.nginx.org/Main)) automatically compress the static files for you. If you don't have that option Flask-Compress will solve the problem for you.
 
@@ -49,7 +49,7 @@ $ easy_install flask-compress
 
 ## Using Flask-Compress
 
-Flask-Compress is incredibly simple to use. In order to start gzip'ing your Flask application's assets, the first thing to do is let Flask-Compress know about your [`flask.Flask`](http://flask.pocoo.org/docs/latest/api/#flask.Flask) application object.
+Flask-Compress is incredibly simple to use. In order to start compressing your Flask application's assets, the first thing to do is let Flask-Compress know about your [`flask.Flask`](http://flask.pocoo.org/docs/latest/api/#flask.Flask) application object.
 
 ```python
 from flask import Flask
@@ -73,7 +73,7 @@ def start_app():
     return app
 ```
 
-In terms of automatically compressing your assets using gzip, passing your [`flask.Flask`](http://flask.pocoo.org/docs/latest/api/#flask.Flask) object to the `flask_compress.Compress` object is all that needs to be done.
+In terms of automatically compressing your assets, passing your [`flask.Flask`](http://flask.pocoo.org/docs/latest/api/#flask.Flask) object to the `flask_compress.Compress` object is all that needs to be done.
 
 
 ## Options
@@ -84,11 +84,12 @@ Within your Flask application's settings you can provide the following settings 
 | ------ | ----------- | ------- |
 | `COMPRESS_MIMETYPES` | Set the list of mimetypes to compress here. | `[`<br>`'text/html',`<br>`'text/css',`<br>`'text/xml',`<br>`'application/json',`<br>`'application/javascript'`<br>`]` |
 | `COMPRESS_LEVEL` | Specifies the gzip compression level. | `6` |
+| `COMPRESS_DEFLATE_LEVEL` | Specifies the deflate compression level. | `-1` |
 | `COMPRESS_MIN_SIZE` | Specifies the minimum file size threshold for compressing files. | `500` |
 | `COMPRESS_CACHE_KEY` | Specifies the cache key method for lookup/storage of response data. | `None` |
 | `COMPRESS_CACHE_BACKEND` | Specified the backend for storing the cached response data. | `None` |
 | `COMPRESS_REGISTER` | Specifies if compression should be automatically registered. | `True` |
-| `COMPRESS_ALGORITHM` | Supported compression algorithms. | `['br', 'gzip']` |
+| `COMPRESS_ALGORITHM` | Supported compression algorithms. | `['br', 'gzip', 'deflate']` |
 | `COMPRESS_BR_MODE` | For Brotli, the compression mode. The options are 0, 1, or 2. These correspond to "generic", "text" (for UTF-8 input), and "font" (for WOFF 2.0). | `0` |
 | `COMPRESS_BR_QUALITY` | For Brotli, the desired compression level. Proivdes control over the speed/compression density tradeoff. Higher values provide better compression at the cost of compression time. Ranges from 0 to 11. | `4` |
 | `COMPRESS_BR_WINDOW` | For Brotli, this specifies the base-2 logarithm of the sliding window size. Ranges from 10 to 24. | `22` |

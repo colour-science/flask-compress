@@ -275,7 +275,7 @@ class CompressionAlgoTests(unittest.TestCase):
 
     def test_content_encoding_is_correct(self):
         """ Test that the `Content-Encoding` header matches the compression algorithm """
-        self.app.config['COMPRESS_ALGORITHM'] = ['br', 'gzip']
+        self.app.config['COMPRESS_ALGORITHM'] = ['br', 'gzip', 'deflate']
         Compress(self.app)
 
         headers_gzip = [('Accept-Encoding', 'gzip')]

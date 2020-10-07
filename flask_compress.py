@@ -207,4 +207,4 @@ class Compress(object):
                                    mode=app.config['COMPRESS_BR_MODE'],
                                    quality=app.config['COMPRESS_BR_QUALITY'],
                                    lgwin=app.config['COMPRESS_BR_WINDOW'],
-                                   lgblock=app.config['COMPRESS_BR_SIZE'])
+                                   lgblock=app.config['COMPRESS_BR_BLOCK'])

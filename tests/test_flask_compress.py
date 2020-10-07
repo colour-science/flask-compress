@@ -132,13 +132,15 @@ class UrlTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_quality_level(self):
-        """ Tests COMPRESS_QUALITY_LEVEL correctly affects response data. """
-        self.app.config['COMPRESS_QUALITY_LEVEL'] = 4
-        response = self.client_get('/large/')
+        """ Tests that COMPRESS_BR_QUALITY correctly affects response data. """
+        self.app.config['COMPRESS_BR_QUALITY'] = 4
+        client = self.app.test_client()
+        response = client.get('/large/', headers=[('Accept-Encoding', 'br')])
         response4_size = len(response.data)
 
-        self.app.config['COMPRESS_QUALITY_LEVEL'] = 11
-        response = self.client_get('/large/')
+        self.app.config['COMPRESS_BR_QUALITY'] = 11
+        client = self.app.test_client()
+        response = client.get('/large/', headers=[('Accept-Encoding', 'br')])
         response11_size = len(response.data)
 
         self.assertNotEqual(response4_size, response11_size)

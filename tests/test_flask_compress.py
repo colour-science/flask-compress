@@ -32,20 +32,20 @@ class DefaultsTest(unittest.TestCase):
         self.assertEqual(self.app.config['COMPRESS_ALGORITHM'], ['br', 'gzip'])
 
     def test_mode_default(self):
-        """ Tests COMPRESS_MODE default value is correctly set. """
-        self.assertEqual(self.app.config['COMPRESS_MODE'], 0)
+        """ Tests COMPRESS_BR_MODE default value is correctly set. """
+        self.assertEqual(self.app.config['COMPRESS_BR_MODE'], 0)
 
     def test_quality_level_default(self):
-        """ Tests COMPRESS_QUALITY_LEVEL default value is correctly set. """
-        self.assertEqual(self.app.config['COMPRESS_QUALITY_LEVEL'], 4)
+        """ Tests COMPRESS_BR_QUALITY default value is correctly set. """
+        self.assertEqual(self.app.config['COMPRESS_BR_QUALITY'], 4)
 
     def test_window_size_default(self):
-        """ Tests COMPRESS_WINDOW_SIZE default value is correctly set. """
-        self.assertEqual(self.app.config['COMPRESS_WINDOW_SIZE'], 22)
+        """ Tests COMPRESS_BR_WINDOW default value is correctly set. """
+        self.assertEqual(self.app.config['COMPRESS_BR_WINDOW'], 22)
 
     def test_block_size_default(self):
-        """ Tests COMPRESS_BLOCK_SIZE default value is correctly set. """
-        self.assertEqual(self.app.config['COMPRESS_BLOCK_SIZE'], 0)
+        """ Tests COMPRESS_BR_BLOCK default value is correctly set. """
+        self.assertEqual(self.app.config['COMPRESS_BR_BLOCK'], 0)
 
 class InitTests(unittest.TestCase):
     def setUp(self):

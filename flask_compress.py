@@ -71,6 +71,7 @@ class Compress(object):
             ('COMPRESS_BR_QUALITY', 4),
             ('COMPRESS_BR_WINDOW', 22),
             ('COMPRESS_BR_BLOCK', 0),
+            ('COMPRESS_DEFLATE_LEVEL', -1),
             ('COMPRESS_MIN_SIZE', 500),
             ('COMPRESS_CACHE_KEY', None),
             ('COMPRESS_CACHE_BACKEND', None),
@@ -204,7 +205,8 @@ class Compress(object):
                 gzip_file.write(response.get_data())
             return gzip_buffer.getvalue()
         elif algorithm == 'deflate':
-            return zlib.compress(response.get_data())
+            return zlib.compress(response.get_data(),
+                                 app.config['COMPRESS_DEFLATE_LEVEL'])
         elif algorithm == 'br':
             return brotli.compress(response.get_data(),
                                    mode=app.config['COMPRESS_BR_MODE'],

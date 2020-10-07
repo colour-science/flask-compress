@@ -29,7 +29,11 @@ class DefaultsTest(unittest.TestCase):
 
     def test_algorithm_default(self):
         """ Tests COMPRESS_ALGORITHM default value is correctly set. """
-        self.assertEqual(self.app.config['COMPRESS_ALGORITHM'], ['br', 'gzip'])
+        self.assertEqual(self.app.config['COMPRESS_ALGORITHM'], ['br', 'gzip', 'deflate'])
+
+    def test_default_deflate_settings(self):
+        """ Tests COMPRESS_DELATE_LEVEL default value is correctly set. """
+        self.assertEqual(self.app.config['COMPRESS_DEFLATE_LEVEL'], -1)
 
     def test_mode_default(self):
         """ Tests COMPRESS_BR_MODE default value is correctly set. """
@@ -144,6 +148,21 @@ class UrlTests(unittest.TestCase):
         response11_size = len(response.data)
 
         self.assertNotEqual(response4_size, response11_size)
+
+    def test_deflate_compression_level(self):
+        """ Tests COMPRESS_DELATE_LEVEL correctly affects response data. """
+        self.app.config['COMPRESS_DEFLATE_LEVEL'] = -1
+        client = self.app.test_client()
+        response = client.get('/large/', headers=[('Accept-Encoding', 'deflate')])
+        response_size = len(response.data)
+
+        self.app.config['COMPRESS_DEFLATE_LEVEL'] = 1
+        client = self.app.test_client()
+        response = client.get('/large/', headers=[('Accept-Encoding', 'deflate')])
+        response1_size = len(response.data)
+
+        self.assertNotEqual(response_size, response1_size)
+
 
 class CompressionAlgoTests(unittest.TestCase):
     """

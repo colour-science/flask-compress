@@ -84,6 +84,7 @@ Within your Flask application's settings you can provide the following settings 
 | ------ | ----------- | ------- |
 | `COMPRESS_MIMETYPES` | Set the list of mimetypes to compress here. | `[`<br>`'text/html',`<br>`'text/css',`<br>`'text/xml',`<br>`'application/json',`<br>`'application/javascript'`<br>`]` |
 | `COMPRESS_LEVEL` | Specifies the gzip compression level. | `6` |
+| `COMPRESS_DEFLATE_LEVEL` | Specifies the deflate compression level. | `-1` |
 | `COMPRESS_MIN_SIZE` | Specifies the minimum file size threshold for compressing files. | `500` |
 | `COMPRESS_CACHE_KEY` | Specifies the cache key method for lookup/storage of response data. | `None` |
 | `COMPRESS_CACHE_BACKEND` | Specified the backend for storing the cached response data. | `None` |

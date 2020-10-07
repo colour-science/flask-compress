@@ -1,10 +1,23 @@
-*.pyc
-*build/
-dist/
-*egg*/
-venv*/
 *~
-cover/
-.coverage
+# vim
+*.sw[klmnop]
+# python
+*.py[co~]
+# Ignoring build dir
+/build
+/dist
+/*.egg-info/
+# Virtual environments
+venv*
 .env*
-.tox
+# Coverage reports
+/cover/
+/.coverage
+/htmlcov
+# Ignoring profiling reports
+*.prof
+*.lprof
+# Tox and pytest
+/.tox
+/.cache
+/.pytest_cache

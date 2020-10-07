@@ -66,6 +66,10 @@ class Compress(object):
                                     'application/json',
                                     'application/javascript']),
             ('COMPRESS_LEVEL', 6),
+            ('COMPRESS_BR_MODE', 0),
+            ('COMPRESS_BR_QUALITY', 4),
+            ('COMPRESS_BR_WINDOW', 22),
+            ('COMPRESS_BR_BLOCK', 0),
             ('COMPRESS_MIN_SIZE', 500),
             ('COMPRESS_CACHE_KEY', None),
             ('COMPRESS_CACHE_BACKEND', None),
@@ -199,4 +203,8 @@ class Compress(object):
                 gzip_file.write(response.get_data())
             return gzip_buffer.getvalue()
         elif algorithm == 'br':
-            return brotli.compress(response.get_data())
+            return brotli.compress(response.get_data(),
+                                   mode=app.config['COMPRESS_BR_MODE'],
+                                   quality=app.config['COMPRESS_BR_QUALITY'],
+                                   lgwin=app.config['COMPRESS_BR_WINDOW'],
+                                   lgblock=app.config['COMPRESS_BR_BLOCK'])

@@ -31,6 +31,21 @@ class DefaultsTest(unittest.TestCase):
         """ Tests COMPRESS_ALGORITHM default value is correctly set. """
         self.assertEqual(self.app.config['COMPRESS_ALGORITHM'], ['br', 'gzip'])
 
+    def test_mode_default(self):
+        """ Tests COMPRESS_BR_MODE default value is correctly set. """
+        self.assertEqual(self.app.config['COMPRESS_BR_MODE'], 0)
+
+    def test_quality_level_default(self):
+        """ Tests COMPRESS_BR_QUALITY default value is correctly set. """
+        self.assertEqual(self.app.config['COMPRESS_BR_QUALITY'], 4)
+
+    def test_window_size_default(self):
+        """ Tests COMPRESS_BR_WINDOW default value is correctly set. """
+        self.assertEqual(self.app.config['COMPRESS_BR_WINDOW'], 22)
+
+    def test_block_size_default(self):
+        """ Tests COMPRESS_BR_BLOCK default value is correctly set. """
+        self.assertEqual(self.app.config['COMPRESS_BR_BLOCK'], 0)
 
 class InitTests(unittest.TestCase):
     def setUp(self):
@@ -116,6 +131,19 @@ class UrlTests(unittest.TestCase):
         response = client.options('/small/', headers=headers)
         self.assertEqual(response.status_code, 200)
 
+    def test_quality_level(self):
+        """ Tests that COMPRESS_BR_QUALITY correctly affects response data. """
+        self.app.config['COMPRESS_BR_QUALITY'] = 4
+        client = self.app.test_client()
+        response = client.get('/large/', headers=[('Accept-Encoding', 'br')])
+        response4_size = len(response.data)
+
+        self.app.config['COMPRESS_BR_QUALITY'] = 11
+        client = self.app.test_client()
+        response = client.get('/large/', headers=[('Accept-Encoding', 'br')])
+        response11_size = len(response.data)
+
+        self.assertNotEqual(response4_size, response11_size)
 
 class CompressionAlgoTests(unittest.TestCase):
     """

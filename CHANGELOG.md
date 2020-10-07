@@ -3,7 +3,8 @@ All notable changes to `flask-compress` will be documented in this file.
 
 ## [Unreleased]
 ### Added
-- The following parameters to control Brotli compression are now available: `COMPRESSION_BR_MODE`, `COMPRESSION_BR_QUALITY`, `COMPRESS_BR_WINDOW`, `COMPRESSION_BR_BLOCK`. [#10](https://github.com/colour-science/flask-compress/pull/10)
+- The following parameters to control Brotli compression are now available: `COMPRESSION_BR_MODE`, `COMPRESSION_BR_LEVEL`, `COMPRESS_BR_WINDOW`, `COMPRESSION_BR_BLOCK`. [#10](https://github.com/colour-science/flask-compress/pull/10)
+- Add deflate support [#8](https://github.com/colour-science/flask-compress/pull/8)
 
 ### Changed
 - The default quality level for Brotli is now 6, which provides compression comparable to `gzip` at the default setting, while reducing the time required versus the Brotli default of 11.
@@ -16,6 +17,8 @@ All notable changes to `flask-compress` will be documented in this file.
 - Modified default compression settings to use Brotli when available before `gzip`
 
 ## [1.5.0] - 2020-05-09
+### Added
+- Add Brotli support [#1](https://github.com/colour-science/flask-compress/pull/1)
 
 ## [1.4.0] - 2017-01-04
 

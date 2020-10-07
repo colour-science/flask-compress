@@ -67,8 +67,8 @@ class Compress(object):
                                     'application/json',
                                     'application/javascript']),
             ('COMPRESS_LEVEL', 6),
+            ('COMPRESS_BR_LEVEL', 4),
             ('COMPRESS_BR_MODE', 0),
-            ('COMPRESS_BR_QUALITY', 4),
             ('COMPRESS_BR_WINDOW', 22),
             ('COMPRESS_BR_BLOCK', 0),
             ('COMPRESS_DEFLATE_LEVEL', -1),
@@ -210,6 +210,6 @@ class Compress(object):
         elif algorithm == 'br':
             return brotli.compress(response.get_data(),
                                    mode=app.config['COMPRESS_BR_MODE'],
-                                   quality=app.config['COMPRESS_BR_QUALITY'],
+                                   quality=app.config['COMPRESS_BR_LEVEL'],
                                    lgwin=app.config['COMPRESS_BR_WINDOW'],
                                    lgblock=app.config['COMPRESS_BR_BLOCK'])

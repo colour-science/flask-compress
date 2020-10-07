@@ -40,8 +40,8 @@ class DefaultsTest(unittest.TestCase):
         self.assertEqual(self.app.config['COMPRESS_BR_MODE'], 0)
 
     def test_quality_level_default(self):
-        """ Tests COMPRESS_BR_QUALITY default value is correctly set. """
-        self.assertEqual(self.app.config['COMPRESS_BR_QUALITY'], 4)
+        """ Tests COMPRESS_BR_LEVEL default value is correctly set. """
+        self.assertEqual(self.app.config['COMPRESS_BR_LEVEL'], 4)
 
     def test_window_size_default(self):
         """ Tests COMPRESS_BR_WINDOW default value is correctly set. """
@@ -104,18 +104,6 @@ class UrlTests(unittest.TestCase):
         response = client.options('/large/', headers=headers)
         self.assertEqual(response.status_code, 200)
 
-    def test_compress_level(self):
-        """ Tests COMPRESS_LEVEL correctly affects response data. """
-        self.app.config['COMPRESS_LEVEL'] = 1
-        response = self.client_get('/large/')
-        response1_size = len(response.data)
-
-        self.app.config['COMPRESS_LEVEL'] = 6
-        response = self.client_get('/large/')
-        response6_size = len(response.data)
-
-        self.assertNotEqual(response1_size, response6_size)
-
     def test_compress_min_size(self):
         """ Tests COMPRESS_MIN_SIZE correctly affects response data. """
         response = self.client_get('/small/')
@@ -135,14 +123,28 @@ class UrlTests(unittest.TestCase):
         response = client.options('/small/', headers=headers)
         self.assertEqual(response.status_code, 200)
 
-    def test_quality_level(self):
-        """ Tests that COMPRESS_BR_QUALITY correctly affects response data. """
-        self.app.config['COMPRESS_BR_QUALITY'] = 4
+    def test_gzip_compression_level(self):
+        """ Tests COMPRESS_LEVEL correctly affects response data. """
+        self.app.config['COMPRESS_LEVEL'] = 1
+        client = self.app.test_client()
+        response = client.get('/large/', headers=[('Accept-Encoding', 'gzip')])
+        response1_size = len(response.data)
+
+        self.app.config['COMPRESS_LEVEL'] = 6
+        client = self.app.test_client()
+        response = client.get('/large/', headers=[('Accept-Encoding', 'gzip')])
+        response6_size = len(response.data)
+
+        self.assertNotEqual(response1_size, response6_size)
+
+    def test_br_compression_level(self):
+        """ Tests that COMPRESS_BR_LEVEL correctly affects response data. """
+        self.app.config['COMPRESS_BR_LEVEL'] = 4
         client = self.app.test_client()
         response = client.get('/large/', headers=[('Accept-Encoding', 'br')])
         response4_size = len(response.data)
 
-        self.app.config['COMPRESS_BR_QUALITY'] = 11
+        self.app.config['COMPRESS_BR_LEVEL'] = 11
         client = self.app.test_client()
         response = client.get('/large/', headers=[('Accept-Encoding', 'br')])
         response11_size = len(response.data)
@@ -287,6 +289,12 @@ class CompressionAlgoTests(unittest.TestCase):
         response_br = client.options('/small/', headers=headers_br)
         self.assertIn('Content-Encoding', response_br.headers)
         self.assertEqual(response_br.headers.get('Content-Encoding'), 'br')
+
+        headers_deflate = [('Accept-Encoding', 'deflate')]
+        client = self.app.test_client()
+        response_deflate = client.options('/small/', headers=headers_deflate)
+        self.assertIn('Content-Encoding', response_deflate.headers)
+        self.assertEqual(response_deflate.headers.get('Content-Encoding'), 'deflate')
 
 
 if __name__ == '__main__':

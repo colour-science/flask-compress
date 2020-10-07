@@ -84,13 +84,13 @@ Within your Flask application's settings you can provide the following settings 
 | ------ | ----------- | ------- |
 | `COMPRESS_MIMETYPES` | Set the list of mimetypes to compress here. | `[`<br>`'text/html',`<br>`'text/css',`<br>`'text/xml',`<br>`'application/json',`<br>`'application/javascript'`<br>`]` |
 | `COMPRESS_LEVEL` | Specifies the gzip compression level. | `6` |
+| `COMPRESS_BR_LEVEL` | Specifies the Brotli compression level. Ranges from 0 to 11. | `4` |
+| `COMPRESS_BR_MODE` | For Brotli, the compression mode. The options are 0, 1, or 2. These correspond to "generic", "text" (for UTF-8 input), and "font" (for WOFF 2.0). | `0` |
+| `COMPRESS_BR_WINDOW` | For Brotli, this specifies the base-2 logarithm of the sliding window size. Ranges from 10 to 24. | `22` |
+| `COMPRESS_BR_BLOCK` | For Brotli, this provides the base-2 logarithm of the maximum input block size. If zero is provided, value will be determined based on the quality. Ranges from 16 to 24. | `0` |
 | `COMPRESS_DEFLATE_LEVEL` | Specifies the deflate compression level. | `-1` |
 | `COMPRESS_MIN_SIZE` | Specifies the minimum file size threshold for compressing files. | `500` |
 | `COMPRESS_CACHE_KEY` | Specifies the cache key method for lookup/storage of response data. | `None` |
 | `COMPRESS_CACHE_BACKEND` | Specified the backend for storing the cached response data. | `None` |
 | `COMPRESS_REGISTER` | Specifies if compression should be automatically registered. | `True` |
 | `COMPRESS_ALGORITHM` | Supported compression algorithms. | `['br', 'gzip', 'deflate']` |
-| `COMPRESS_BR_MODE` | For Brotli, the compression mode. The options are 0, 1, or 2. These correspond to "generic", "text" (for UTF-8 input), and "font" (for WOFF 2.0). | `0` |
-| `COMPRESS_BR_QUALITY` | For Brotli, the desired compression level. Proivdes control over the speed/compression density tradeoff. Higher values provide better compression at the cost of compression time. Ranges from 0 to 11. | `4` |
-| `COMPRESS_BR_WINDOW` | For Brotli, this specifies the base-2 logarithm of the sliding window size. Ranges from 10 to 24. | `22` |
-| `COMPRESS_BR_BLOCK` | For Brotli, this provides the base-2 logarithm of the maximum input block size. If zero is provided, value will be determined based on the quality. Ranges from 16 to 24. | `0` |

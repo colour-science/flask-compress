@@ -89,3 +89,7 @@ Within your Flask application's settings you can provide the following settings 
 | `COMPRESS_CACHE_BACKEND` | Specified the backend for storing the cached response data. | `None` |
 | `COMPRESS_REGISTER` | Specifies if compression should be automatically registered. | `True` |
 | `COMPRESS_ALGORITHM` | Supported compression algorithms. | `['br', 'gzip']` |
+| `COMPRESS_BR_MODE` | For Brotli, the compression mode. The options are 0, 1, or 2. These correspond to "generic", "text" (for UTF-8 input), and "font" (for WOFF 2.0). | `0` |
+| `COMPRESS_BR_QUALITY` | For Brotli, the desired compression level. Proivdes control over the speed/compression density tradeoff. Higher values provide better compression at the cost of compression time. Ranges from 0 to 11. | `4` |
+| `COMPRESS_BR_WINDOW` | For Brotli, this specifies the base-2 logarithm of the sliding window size. Ranges from 10 to 24. | `22` |
+| `COMPRESS_BR_BLOCK` | For Brotli, this provides the base-2 logarithm of the maximum input block size. If zero is provided, value will be determined based on the quality. Ranges from 16 to 24. | `0` |

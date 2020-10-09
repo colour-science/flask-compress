@@ -1,7 +1,7 @@
 # Change Log for `flask-compress`
 All notable changes to `flask-compress` will be documented in this file.
 
-## [Unreleased]
+## [1.7.0] - 2020-10-09
 ### Added
 - The following parameters to control Brotli compression are now available: `COMPRESSION_BR_MODE`, `COMPRESSION_BR_LEVEL`, `COMPRESS_BR_WINDOW`, `COMPRESSION_BR_BLOCK`. [#10](https://github.com/colour-science/flask-compress/pull/10)
 - Add deflate support [#8](https://github.com/colour-science/flask-compress/pull/8), with `COMPRESSION_DEFLATE_LEVEL` to control compression level (default is `-1`)

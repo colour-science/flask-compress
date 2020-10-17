@@ -28,4 +28,4 @@ jobs:
         PYTHON_VERSION: ${{ matrix.python-version }}
       run: |
         ENV_NAME="${PYTHON_VERSION/./}"
-        ttox -e "${ENV_NAME}"
+        tox -e "${ENV_NAME}"

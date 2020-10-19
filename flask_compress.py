@@ -4,6 +4,7 @@
 # License: The MIT License (MIT)
 
 import sys
+import functools
 from gzip import GzipFile
 import zlib
 from io import BytesIO
@@ -11,7 +12,7 @@ from io import BytesIO
 from collections import defaultdict
 
 import brotli
-from flask import request, current_app
+from flask import request, after_this_request, current_app
 
 
 if sys.version_info[:2] == (2, 6):
@@ -195,6 +196,17 @@ class Compress(object):
             response.headers['Vary'] = '{}, Accept-Encoding'.format(vary)
 
         return response
+
+    def compressed(self):
+        def decorator(f):
+            @functools.wraps(f)
+            def decorated_function(*args, **kwargs):
+                @after_this_request
+                def compressor(response):
+                    return self.after_request(response)
+                return f(*args, **kwargs)
+            return decorated_function
+        return decorator
 
     def compress(self, app, response, algorithm):
         if algorithm == 'gzip':

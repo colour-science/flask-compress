@@ -159,21 +159,22 @@ class Compress(object):
 
     def after_request(self, response):
         app = self.app or current_app
-        accept_encoding = request.headers.get('Accept-Encoding', '')
 
+        accept_encoding = request.headers.get('Accept-Encoding', '')
         chosen_algorithm = self._choose_compress_algorithm(accept_encoding)
 
-        if (response.mimetype not in app.config['COMPRESS_MIMETYPES'] or
-            chosen_algorithm is None or
-            not 200 <= response.status_code < 300 or
+        if (chosen_algorithm is None or
+            response.mimetype not in app.config["COMPRESS_MIMETYPES"] or
+            response.status_code < 200 or
+            response.status_code >= 300 or
+            "Content-Encoding" in response.headers or
             (response.content_length is not None and
-             response.content_length < app.config['COMPRESS_MIN_SIZE']) or
-            'Content-Encoding' in response.headers):
+             response.content_length < app.config["COMPRESS_MIN_SIZE"])):
             return response
 
         response.direct_passthrough = False
 
-        if self.cache:
+        if self.cache is not None:
             key = self.cache_key(request)
             compressed_content = self.cache.get(key)
             if compressed_content is None:
@@ -188,11 +189,10 @@ class Compress(object):
         response.headers['Content-Length'] = response.content_length
 
         vary = response.headers.get('Vary')
-        if vary:
-            if 'accept-encoding' not in vary.lower():
-                response.headers['Vary'] = '{}, Accept-Encoding'.format(vary)
-        else:
+        if not vary:
             response.headers['Vary'] = 'Accept-Encoding'
+        elif 'accept-encoding' not in vary.lower():
+            response.headers['Vary'] = '{}, Accept-Encoding'.format(vary)
 
         return response
 

@@ -83,6 +83,10 @@ class Compress(object):
         for k, v in defaults:
             app.config.setdefault(k, v)
 
+        if not hasattr(app, 'extensions'):
+            app.extensions = {}
+        app.extensions["compress"] = self
+
         backend = app.config['COMPRESS_CACHE_BACKEND']
         self.cache = backend() if backend else None
         self.cache_key = app.config['COMPRESS_CACHE_KEY']
@@ -197,16 +201,16 @@ class Compress(object):
 
         return response
 
-    def compressed(self):
-        def decorator(f):
-            @functools.wraps(f)
-            def decorated_function(*args, **kwargs):
-                @after_this_request
-                def compressor(response):
-                    return self.after_request(response)
-                return f(*args, **kwargs)
-            return decorated_function
-        return decorator
+    @staticmethod
+    def compressed(f):
+        @functools.wraps(f)
+        def decorated_function(*args, **kwargs):
+            @after_this_request
+            def compressor(response):
+                compress = current_app.extensions["compress"]
+                return compress.after_request(response)
+            return f(*args, **kwargs)
+        return decorated_function
 
     def compress(self, app, response, algorithm):
         if algorithm == 'gzip':

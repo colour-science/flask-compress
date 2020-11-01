@@ -310,7 +310,7 @@ class CompressionPerViewTests(unittest.TestCase):
             return render_template('large.html')
 
         @self.app.route('/route2/')
-        @compress.compressed()
+        @compress.compressed
         def view_2():
             return render_template('large.html')
 
@@ -326,6 +326,45 @@ class CompressionPerViewTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('Content-Encoding', response.headers)
         self.assertEqual(response.headers.get('Content-Encoding'), 'deflate')
+
+
+class CompressionPerViewFactoryTests(unittest.TestCase):
+    def create_app(self, config):
+        app = Flask(__name__)
+        app.testing = True
+        app.config["COMPRESS_REGISTER"] = False
+        app.config.from_mapping(config)
+        compress = Compress()
+        compress.init_app(app)
+
+        @app.route('/route1/')
+        def view_1():
+            return render_template('large.html')
+
+        @app.route('/route2/')
+        @Compress.compressed
+        def view_2():
+            return render_template('large.html')
+
+        return app
+
+    def test_compression(self):
+        app_a = self.create_app({})
+        client_a = app_a.test_client()
+
+        app_b = self.create_app({'COMPRESS_ALGORITHM': []})
+        client_b = app_b.test_client()
+
+        headers = [('Accept-Encoding', 'deflate')]
+
+        response = client_a.get('/route2/', headers=headers)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('Content-Encoding', response.headers)
+        self.assertEqual(response.headers.get('Content-Encoding'), 'deflate')
+
+        response = client_b.get('/route2/', headers=headers)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn('Content-Encoding', response.headers)
 
 
 if __name__ == '__main__':

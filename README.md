@@ -92,7 +92,7 @@ compress.init_app(app)
 
 # Compress this view specifically
 @app.route("/test")
-@compress.compressed()
+@Compress.compressed
 def view():
    pass
 ```

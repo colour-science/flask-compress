@@ -297,5 +297,36 @@ class CompressionAlgoTests(unittest.TestCase):
         self.assertEqual(response_deflate.headers.get('Content-Encoding'), 'deflate')
 
 
+class CompressionPerViewTests(unittest.TestCase):
+    def setUp(self):
+        self.app = Flask(__name__)
+        self.app.testing = True
+        self.app.config["COMPRESS_REGISTER"] = False
+        compress = Compress()
+        compress.init_app(self.app)
+
+        @self.app.route('/route1/')
+        def view_1():
+            return render_template('large.html')
+
+        @self.app.route('/route2/')
+        @compress.compressed()
+        def view_2():
+            return render_template('large.html')
+
+    def test_compression(self):
+        client = self.app.test_client()
+        headers = [('Accept-Encoding', 'deflate')]
+
+        response = client.get('/route1/', headers=headers)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn('Content-Encoding', response.headers)
+
+        response = client.get('/route2/', headers=headers)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('Content-Encoding', response.headers)
+        self.assertEqual(response.headers.get('Content-Encoding'), 'deflate')
+
+
 if __name__ == '__main__':
     unittest.main()

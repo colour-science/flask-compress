@@ -49,6 +49,8 @@ $ easy_install flask-compress
 
 ## Using Flask-Compress
 
+### Globally
+
 Flask-Compress is incredibly simple to use. In order to start compressing your Flask application's assets, the first thing to do is let Flask-Compress know about your [`flask.Flask`](http://flask.pocoo.org/docs/latest/api/#flask.Flask) application object.
 
 ```python
@@ -75,6 +77,25 @@ def start_app():
 
 In terms of automatically compressing your assets, passing your [`flask.Flask`](http://flask.pocoo.org/docs/latest/api/#flask.Flask) object to the `flask_compress.Compress` object is all that needs to be done.
 
+### Per-view compression
+
+Compression is possible per view using the `@compress.compressed()` decorator. Make sure to disable global compression first.
+
+```python
+from flask import Flask
+from flask_compress import Compress
+
+app = Flask(__name__)
+app.config["COMPRESS_REGISTER"] = False  # disable default compression of all eligible requests
+compress = Compress()
+compress.init_app(app)
+
+# Compress this view specifically
+@app.route("/test")
+@compress.compressed()
+def view():
+   pass
+```
 
 ## Options
 

@@ -1,6 +1,11 @@
 # Change Log for `flask-compress`
 All notable changes to `flask-compress` will be documented in this file.
 
+## [1.8.0] - Development
+### Added
+- Support ETag header as defined in RFC7232 [#17](https://github.com/colour-science/flask-compress/pull/17)
+- Implement per-view compression [#14](https://github.com/colour-science/flask-compress/pull/14)
+
 ## [1.7.0] - 2020-10-09
 ### Added
 - The following parameters to control Brotli compression are now available: `COMPRESSION_BR_MODE`, `COMPRESSION_BR_LEVEL`, `COMPRESS_BR_WINDOW`, `COMPRESSION_BR_BLOCK`. [#10](https://github.com/colour-science/flask-compress/pull/10)

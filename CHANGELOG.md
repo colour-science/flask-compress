@@ -2,7 +2,7 @@
 
 All notable changes to `flask-compress` will be documented in this file.
 
-## 1.8.0 (development)
+## 1.8.0 (2020-11-03)
 
 - Support ETag header as defined in *RFC7232* [#17](https://github.com/colour-science/flask-compress/pull/17)
 - Implement per-view compression [#14](https://github.com/colour-science/flask-compress/pull/14)

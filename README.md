@@ -31,13 +31,13 @@ defined in the `COMPRESS_ALGORITHM` option (see below).
 If you use pip then installation is simply:
 
 ```shell
-$ pip install flask-compress
+$ pip install --user flask-compress
 ```
 
 or, if you want the latest github version:
 
 ```shell
-$ pip install git+git://github.com/colour-science/flask-compress.git
+$ pip install --user git+git://github.com/colour-science/flask-compress.git
 ```
 
 You can also install Flask-Compress via Easy Install:

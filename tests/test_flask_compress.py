@@ -273,6 +273,20 @@ class CompressionAlgoTests(unittest.TestCase):
         c = Compress(self.app)
         self.assertEqual(c._choose_compress_algorithm(accept_encoding), 'br')
 
+    def test_wildcard_quality(self):
+        """ Tests that a wildcard with q=0 is discarded """
+        accept_encoding = '*;q=0'
+        self.app.config['COMPRESS_ALGORITHM'] = ['gzip', 'br', 'deflate']
+        c = Compress(self.app)
+        self.assertEqual(c._choose_compress_algorithm(accept_encoding), None)
+
+    def test_chrome_ranged_requests(self):
+        """ Tests that Chrome ranged requests behave as expected """
+        accept_encoding = 'identity;q=1, *;q=0'
+        self.app.config['COMPRESS_ALGORITHM'] = ['gzip', 'br', 'deflate']
+        c = Compress(self.app)
+        self.assertEqual(c._choose_compress_algorithm(accept_encoding), None)
+
     def test_content_encoding_is_correct(self):
         """ Test that the `Content-Encoding` header matches the compression algorithm """
         self.app.config['COMPRESS_ALGORITHM'] = ['br', 'gzip', 'deflate']

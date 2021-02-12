@@ -117,8 +117,6 @@ class Compress(object):
 
         for part in accept_encoding_header.lower().split(','):
             part = part.strip()
-            quality = 1.0
-
             if ';q=' in part:
                 # If the client associated a quality factor with an algorithm,
                 # try to parse it. We could do the matching using a regex, but
@@ -127,13 +125,17 @@ class Compress(object):
                 try:
                     quality = float(part.split('=')[1].strip())
                 except ValueError:
-                    pass
+                    quality = 1.0
             else:
                 # Otherwise, use the default quality
                 algo = part
+                quality = 1.0
 
-            algos_by_quality[quality].add(algo)
-            fallback_to_any = fallback_to_any or (algo == '*')
+            if algo == '*':
+                if quality > 0:
+                    fallback_to_any = True
+            else:
+                algos_by_quality[quality].add(algo)
 
         # Choose the algorithm with the highest quality factor that the server supports.
         #
@@ -152,10 +154,9 @@ class Compress(object):
                 for server_algo in self.enabled_algorithms:
                     if server_algo in viable_algos:
                         return server_algo
-        else:
-            if fallback_to_any:
-                return self.enabled_algorithms[0]
 
+        if fallback_to_any:
+            return self.enabled_algorithms[0]
         return None
 
     def after_request(self, response):

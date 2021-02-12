@@ -91,7 +91,7 @@ class Compress(object):
         if isinstance(algo, str):
             self.enabled_algorithms = [i.strip() for i in algo.split(',')]
         else:
-            self.enabled_algorithms = algo
+            self.enabled_algorithms = list(algo)
 
         if (app.config['COMPRESS_REGISTER'] and
                 app.config['COMPRESS_MIMETYPES']):

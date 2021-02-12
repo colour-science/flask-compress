@@ -92,6 +92,7 @@ class Compress(object):
             self.enabled_algorithms = [i.strip() for i in algo.split(',')]
         else:
             self.enabled_algorithms = algo
+        self.enabled_algorithms.append('identity')
 
         if (app.config['COMPRESS_REGISTER'] and
                 app.config['COMPRESS_MIMETYPES']):
@@ -165,6 +166,7 @@ class Compress(object):
         chosen_algorithm = self._choose_compress_algorithm(accept_encoding)
 
         if (chosen_algorithm is None or
+            chosen_algorithm == 'identity' or
             response.mimetype not in app.config["COMPRESS_MIMETYPES"] or
             response.status_code < 200 or
             response.status_code >= 300 or

@@ -108,12 +108,15 @@ class Compress(object):
         :return: name of a compression algorithm (`gzip`, `deflate`, `br`) or `None` if
             the client and server don't agree on any.
         """
-        # Map quality factors to requested algorithm names.
-        algos_by_quality = defaultdict(set)
-
         # A flag denoting that client requested using any (`*`) algorithm,
         # in case a specific one is not supported by the server
         fallback_to_any = False
+
+        # Map quality factors to requested algorithm names.
+        algos_by_quality = defaultdict(set)
+
+        # Set of supported algorithms
+        server_algos_set = set(self.enabled_algorithms)
 
         for part in accept_encoding_header.lower().split(','):
             part = part.strip()
@@ -134,7 +137,9 @@ class Compress(object):
             if algo == '*':
                 if quality > 0:
                     fallback_to_any = True
-            else:
+            elif algo == 'identity':  # identity means 'no compression asked'
+                algos_by_quality[quality].add(None)
+            elif algo in server_algos_set:
                 algos_by_quality[quality].add(algo)
 
         # Choose the algorithm with the highest quality factor that the server supports.
@@ -145,9 +150,7 @@ class Compress(object):
         # If the server doesn't support any algorithm that the client requested but
         # there's a special wildcard algorithm request (`*`), choose the first supported
         # algorithm.
-        server_algo_set = set(self.enabled_algorithms)
-        for _, requested_algo_set in sorted(algos_by_quality.items(), reverse=True):
-            viable_algos = server_algo_set & requested_algo_set
+        for _, viable_algos in sorted(algos_by_quality.items(), reverse=True):
             if len(viable_algos) == 1:
                 return viable_algos.pop()
             elif len(viable_algos) > 1:

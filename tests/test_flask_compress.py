@@ -280,6 +280,13 @@ class CompressionAlgoTests(unittest.TestCase):
         c = Compress(self.app)
         self.assertEqual(c._choose_compress_algorithm(accept_encoding), None)
 
+    def test_identity(self):
+        """ Tests that identity is understood """
+        accept_encoding = 'identity;q=1, br;q=0.5, *;q=0'
+        self.app.config['COMPRESS_ALGORITHM'] = ['gzip', 'br', 'deflate']
+        c = Compress(self.app)
+        self.assertEqual(c._choose_compress_algorithm(accept_encoding), None)
+
     def test_chrome_ranged_requests(self):
         """ Tests that Chrome ranged requests behave as expected """
         accept_encoding = 'identity;q=1, *;q=0'

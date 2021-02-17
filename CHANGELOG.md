@@ -2,6 +2,10 @@
 
 All notable changes to `flask-compress` will be documented in this file.
 
+## 1.9.0 (2021-02-12)
+
+- Add support for the `identity` value in *accept-encoding*, fixes [#19](https://github.com/colour-science/flask-compress/issues/19)
+
 ## 1.8.0 (2020-11-03)
 
 - Support ETag header as defined in *RFC7232* [#17](https://github.com/colour-science/flask-compress/pull/17)

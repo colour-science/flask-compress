@@ -2,6 +2,13 @@
 
 All notable changes to `flask-compress` will be documented in this file.
 
+## 1.10 (development)
+
+- Improve GitHub Actions
+- The layout is now an actual package rather than a single module
+- Use `setuptools_scm` to manage packaging
+- Clean up unused files
+
 ## 1.9.0 (2021-02-12)
 
 - Add support for the `identity` value in *accept-encoding*, fixes [#19](https://github.com/colour-science/flask-compress/issues/19)

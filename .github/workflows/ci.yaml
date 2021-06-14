@@ -1,24 +1,29 @@
 name: Unit tests
 
 on:
-  push:
-    branches: [ master ]
   pull_request:
-    branches: [ master ]
+  push:
+    branches:
+    - master
+    tags:
+    - "v*"
 
 jobs:
   test:
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         python-version: [2.7, 3.5, 3.6, 3.7, 3.8, 3.9, pypy2, pypy3]
-    runs-on: ubuntu-latest
 
     name: Python ${{ matrix.python-version }}
     steps:
-    - name: "Checkout ${{ github.ref }} ( ${{ github.sha }} )"
-      uses: actions/checkout@v2
-    - name: Set up Python - ${{ matrix.python-version }}
+    - uses: actions/checkout@v2
+    - name: Get history and tags for SCM versioning to work
+      run: |
+        git fetch --prune --unshallow
+        git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+    - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}

@@ -4,9 +4,9 @@ All notable changes to `flask-compress` will be documented in this file.
 
 ## 1.10 (development)
 
-- Improve GitHub Actions
+- Automate the release process with GitHub Actions
+- Use `setuptools_scm` to manage package versions
 - The layout is now an actual package rather than a single module
-- Use `setuptools_scm` to manage packaging
 - Clean up unused files
 
 ## 1.9.0 (2021-02-12)

@@ -5,7 +5,7 @@ with open('README.md') as fl:
 
 setuptools.setup(
     name='Flask-Compress',
-    version='1.9.0',
+    use_scm_version=True,
     url='https://github.com/colour-science/flask-compress',
     license='MIT',
     author='Thomas Mansencal',

@@ -1,9 +1,9 @@
-import setuptools
+from setuptools import setup, find_packages
 
 with open('README.md') as fl:
     LONG_DESCRIPTION = fl.read()
 
-setuptools.setup(
+setup(
     name='Flask-Compress',
     use_scm_version=True,
     url='https://github.com/colour-science/flask-compress',
@@ -13,7 +13,7 @@ setuptools.setup(
     description='Compress responses in your Flask app with gzip, deflate or brotli.',
     long_description=LONG_DESCRIPTION,
     long_description_content_type='text/markdown',
-    py_modules=['flask_compress'],
+    packages=find_packages(),
     zip_safe=False,
     include_package_data=True,
     platforms='any',

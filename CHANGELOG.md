@@ -2,7 +2,7 @@
 
 All notable changes to `flask-compress` will be documented in this file.
 
-## 1.10 (development)
+## 1.10.0 (2021-06-15)
 
 - Automate the release process with GitHub Actions
 - Use `setuptools_scm` to manage package versions

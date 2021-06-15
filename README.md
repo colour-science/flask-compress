@@ -4,7 +4,7 @@
 [![Version](https://img.shields.io/pypi/v/flask-compress.svg)](https://pypi.python.org/pypi/Flask-Compress)
 [![Downloads](https://pypip.in/d/Flask-Compress/badge.png)](https://pypi.python.org/pypi/Flask-Compress)
 
-Flask-Compress allows you to easily compress your [Flask](http://flask.pocoo.org/) application's responses with gzip, deflate or brotli.
+Flask-Compress allows you to easily compress your [Flask](http://flask.pocoo.org/) application's responses with gzip, deflate or brotli. It originally started as a fork of [Flask-gzip](https://github.com/closeio/Flask-gzip).
 
 The preferred solution is to have a server (like [Nginx](http://wiki.nginx.org/Main)) automatically compress the static files for you. If you don't have that option Flask-Compress will solve the problem for you.
 

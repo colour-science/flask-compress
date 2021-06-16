@@ -21,7 +21,6 @@ setup(
         'flask',
         'brotli'
     ],
-    test_suite='tests',
     classifiers=[
         'Environment :: Web Environment',
         'Intended Audience :: Developers',

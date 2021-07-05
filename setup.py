@@ -21,6 +21,9 @@ setup(
         'flask',
         'brotli'
     ],
+    setup_requires=[
+        'setuptools_scm',
+    ],
     classifiers=[
         'Environment :: Web Environment',
         'Intended Audience :: Developers',

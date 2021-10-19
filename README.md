@@ -2,7 +2,7 @@
 
 [![Build](https://github.com/colour-science/flask-compress/actions/workflows/ci.yaml/badge.svg)](https://github.com/colour-science/flask-compress/actions/workflows/ci.yaml)
 [![Version](https://img.shields.io/pypi/v/flask-compress.svg)](https://pypi.python.org/pypi/Flask-Compress)
-[![Downloads](https://static.pepy.tech/badge/currencyconverter)](https://pypi.python.org/pypi/Flask-Compress)
+[![Downloads](https://static.pepy.tech/badge/flask-compress)](https://pypi.python.org/pypi/Flask-Compress)
 
 Flask-Compress allows you to easily compress your [Flask](http://flask.pocoo.org/) application's responses with gzip, deflate or brotli. It originally started as a fork of [Flask-gzip](https://github.com/closeio/Flask-gzip).
 

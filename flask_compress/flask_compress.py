@@ -165,6 +165,12 @@ class Compress(object):
     def after_request(self, response):
         app = self.app or current_app
 
+        vary = response.headers.get('Vary')
+        if not vary:
+            response.headers['Vary'] = 'Accept-Encoding'
+        elif 'accept-encoding' not in vary.lower():
+            response.headers['Vary'] = '{}, Accept-Encoding'.format(vary)
+
         accept_encoding = request.headers.get('Accept-Encoding', '')
         chosen_algorithm = self._choose_compress_algorithm(accept_encoding)
 
@@ -198,12 +204,6 @@ class Compress(object):
         etag = response.headers.get('ETag')
         if etag:
             response.headers['ETag'] = '{0}:{1}"'.format(etag[:-1], chosen_algorithm)
-
-        vary = response.headers.get('Vary')
-        if not vary:
-            response.headers['Vary'] = 'Accept-Encoding'
-        elif 'accept-encoding' not in vary.lower():
-            response.headers['Vary'] = '{}, Accept-Encoding'.format(vary)
 
         return response
 

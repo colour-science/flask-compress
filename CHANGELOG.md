@@ -2,6 +2,10 @@
 
 All notable changes to `flask-compress` will be documented in this file.
 
+## 1.11 (2022-03-01)
+
+- When compression is enabled, *accept-encoding* is always added to the `Vary` header, fixes [#28](https://github.com/colour-science/flask-compress/issues/28)
+
 ## 1.10.0 (2021-06-15)
 
 - Automate the release process with GitHub Actions

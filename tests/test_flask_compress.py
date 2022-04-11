@@ -349,5 +349,35 @@ class CompressionPerViewTests(unittest.TestCase):
         self.assertEqual(response.headers.get('Content-Encoding'), 'deflate')
 
 
+class StreamTests(unittest.TestCase):
+    def setUp(self):
+        self.app = Flask(__name__)
+        self.app.testing = True
+
+        self.file_path = os.path.join(os.getcwd(), 'tests', 'templates',
+                                      'large.html')
+        self.file_size = os.path.getsize(self.file_path)
+
+        Compress(self.app)
+
+        @self.app.route('/stream/large')
+        def stream():
+            def _stream():
+                with open(self.file_path) as f:
+                    for line in f.readlines():
+                        yield line
+            return self.app.response_class(_stream(), mimetype='text/html')
+
+    def test_no_compression_stream(self):
+        """ Tests compression is skipped when response is streamed"""
+        client = self.app.test_client()
+        for algorithm in ('gzip', 'deflate', 'br', ''):
+            headers = [('Accept-Encoding', algorithm)]
+            response = client.get('/stream/large', headers=headers)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.is_streamed, True)
+            self.assertEqual(self.file_size, len(response.data))
+
+
 if __name__ == '__main__':
     unittest.main()

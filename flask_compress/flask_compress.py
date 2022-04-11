@@ -178,6 +178,7 @@ class Compress(object):
             response.mimetype not in app.config["COMPRESS_MIMETYPES"] or
             response.status_code < 200 or
             response.status_code >= 300 or
+            response.is_streamed or
             "Content-Encoding" in response.headers or
             (response.content_length is not None and
              response.content_length < app.config["COMPRESS_MIN_SIZE"])):

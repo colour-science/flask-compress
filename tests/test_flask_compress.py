@@ -4,7 +4,7 @@ import os
 from flask import Flask, render_template
 
 from flask_compress import Compress
-
+import zlib
 
 class DefaultsTest(unittest.TestCase):
     def setUp(self):
@@ -358,6 +358,9 @@ class StreamTests(unittest.TestCase):
                                       'large.html')
         self.file_size = os.path.getsize(self.file_path)
 
+        with open(self.file_path) as f:
+            self.file_content = f.read()
+
         Compress(self.app)
 
         @self.app.route('/stream/large')
@@ -368,15 +371,24 @@ class StreamTests(unittest.TestCase):
                         yield line
             return self.app.response_class(_stream(), mimetype='text/html')
 
-    def test_no_compression_stream(self):
-        """ Tests compression is skipped when response is streamed"""
+    def decompress(self, data):
+        return zlib.decompress(data).decode()
+
+    def test_compression_stream(self):
+        """ Tests content is compressed if algorithm is 'deflate' """
         client = self.app.test_client()
         for algorithm in ('gzip', 'deflate', 'br', ''):
             headers = [('Accept-Encoding', algorithm)]
             response = client.get('/stream/large', headers=headers)
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.is_streamed, True)
-            self.assertEqual(self.file_size, len(response.data))
+
+            if algorithm == 'deflate' :
+                self.assertEqual(response.headers["Content-Encoding"], 'deflate')
+                self.assertLess(len(response.data), self.file_size)
+                self.assertEqual(self.decompress(response.data), self.file_content)
+            else:
+                self.assertEqual(len(response.data), self.file_size)
 
 
 if __name__ == '__main__':

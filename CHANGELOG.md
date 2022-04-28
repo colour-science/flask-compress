@@ -2,6 +2,10 @@
 
 All notable changes to `flask-compress` will be documented in this file.
 
+## 1.12 (2022-04-28)
+
+- Disable compression when response is streamed, see [#31](https://github.com/colour-science/flask-compress/pull/31)
+
 ## 1.11 (2022-03-01)
 
 - When compression is enabled, *accept-encoding* is always added to the `Vary` header, fixes [#28](https://github.com/colour-science/flask-compress/issues/28)

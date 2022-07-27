@@ -78,6 +78,8 @@ class Compress(object):
             ('COMPRESS_CACHE_BACKEND', None),
             ('COMPRESS_REGISTER', True),
             ('COMPRESS_ALGORITHM', ['br', 'gzip', 'deflate']),
+            ('COMPRESS_EXCLUDE_UA', []),
+            ('COMPRESS_TRACE', False)
         ]
 
         for k, v in defaults:
@@ -166,6 +168,9 @@ class Compress(object):
         app = self.app or current_app
 
         vary = response.headers.get('Vary')
+        if app.config["COMPRESS_TRACE"]:
+            app.logger.info('COMPRESS_TRACE_UA: "%s"',
+                request.headers.get('user-agent'))
         if not vary:
             response.headers['Vary'] = 'Accept-Encoding'
         elif 'accept-encoding' not in vary.lower():
@@ -175,6 +180,8 @@ class Compress(object):
         chosen_algorithm = self._choose_compress_algorithm(accept_encoding)
 
         if (chosen_algorithm is None or
+            any([i in request.headers.get('user-agent')
+                for i in app.config["COMPRESS_EXCLUDE_UA"]]) or
             response.mimetype not in app.config["COMPRESS_MIMETYPES"] or
             response.status_code < 200 or
             response.status_code >= 300 or
@@ -182,6 +189,8 @@ class Compress(object):
             "Content-Encoding" in response.headers or
             (response.content_length is not None and
              response.content_length < app.config["COMPRESS_MIN_SIZE"])):
+            if app.config["COMPRESS_TRACE"]:
+                app.logger.info('COMPRESS_TRACE: no compression')
             return response
 
         response.direct_passthrough = False

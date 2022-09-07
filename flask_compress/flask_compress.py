@@ -97,7 +97,7 @@ class Compress(object):
                 app.config['COMPRESS_MIMETYPES']):
             app.after_request(self.after_request)
 
-    def _choose_compress_algorithm(self, accept_encoding_header):
+    def _choose_compress_algorithm(self, accept_encoding_header, is_streaming=False):
         """
         Determine which compression algorithm we're going to use based on the
         client request. The `Accept-Encoding` header may list one or more desired
@@ -116,7 +116,7 @@ class Compress(object):
         algos_by_quality = defaultdict(set)
 
         # Set of supported algorithms
-        server_algos_set = set(self.enabled_algorithms)
+        server_algos_set = set(["deflate"]) if is_streaming else set(self.enabled_algorithms)
 
         for part in accept_encoding_header.lower().split(','):
             part = part.strip()
@@ -172,30 +172,33 @@ class Compress(object):
             response.headers['Vary'] = '{}, Accept-Encoding'.format(vary)
 
         accept_encoding = request.headers.get('Accept-Encoding', '')
-        chosen_algorithm = self._choose_compress_algorithm(accept_encoding)
+        chosen_algorithm = self._choose_compress_algorithm(accept_encoding, response.is_streamed)
 
         if (chosen_algorithm is None or
             response.mimetype not in app.config["COMPRESS_MIMETYPES"] or
             response.status_code < 200 or
             response.status_code >= 300 or
-            response.is_streamed or
             "Content-Encoding" in response.headers or
-            (response.content_length is not None and
+            (not response.is_streamed and response.content_length is not None and
              response.content_length < app.config["COMPRESS_MIN_SIZE"])):
             return response
 
         response.direct_passthrough = False
 
-        if self.cache is not None:
-            key = self.cache_key(request)
-            compressed_content = self.cache.get(key)
-            if compressed_content is None:
+        if response.is_streamed and chosen_algorithm == "deflate" :
+            # Handling stream
+            response.response = self.stream_compress(response.response)
+        else :
+            if self.cache is not None:
+                key = self.cache_key(request)
+                compressed_content = self.cache.get(key)
+                if compressed_content is None:
+                    compressed_content = self.compress(app, response, chosen_algorithm)
+                self.cache.set(key, compressed_content)
+            else:
                 compressed_content = self.compress(app, response, chosen_algorithm)
-            self.cache.set(key, compressed_content)
-        else:
-            compressed_content = self.compress(app, response, chosen_algorithm)
 
-        response.set_data(compressed_content)
+            response.set_data(compressed_content)
 
         response.headers['Content-Encoding'] = chosen_algorithm
         response.headers['Content-Length'] = response.content_length
@@ -236,3 +239,12 @@ class Compress(object):
                                    quality=app.config['COMPRESS_BR_LEVEL'],
                                    lgwin=app.config['COMPRESS_BR_WINDOW'],
                                    lgblock=app.config['COMPRESS_BR_BLOCK'])
+
+
+    def stream_compress(self, chunks) :
+        compressor = zlib.compressobj()
+        for data in chunks:
+            out = compressor.compress(data.encode())
+            if out:
+                yield out
+        yield compressor.flush()

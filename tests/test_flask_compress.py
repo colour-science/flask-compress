@@ -51,6 +51,10 @@ class DefaultsTest(unittest.TestCase):
         """ Tests COMPRESS_BR_BLOCK default value is correctly set. """
         self.assertEqual(self.app.config['COMPRESS_BR_BLOCK'], 0)
 
+    def test_stream(self):
+        """ Tests COMPRESS_STREAMS default value is correctly set. """
+        self.assertEqual(self.app.config['COMPRESS_STREAMS'], True)
+
 class InitTests(unittest.TestCase):
     def setUp(self):
         self.app = Flask(__name__)
@@ -353,12 +357,11 @@ class StreamTests(unittest.TestCase):
     def setUp(self):
         self.app = Flask(__name__)
         self.app.testing = True
+        self.app.config["COMPRESS_STREAMS"] = False
 
         self.file_path = os.path.join(os.getcwd(), 'tests', 'templates',
                                       'large.html')
         self.file_size = os.path.getsize(self.file_path)
-
-        Compress(self.app)
 
         @self.app.route('/stream/large')
         def stream():
@@ -370,6 +373,7 @@ class StreamTests(unittest.TestCase):
 
     def test_no_compression_stream(self):
         """ Tests compression is skipped when response is streamed"""
+        Compress(self.app)
         client = self.app.test_client()
         for algorithm in ('gzip', 'deflate', 'br', ''):
             headers = [('Accept-Encoding', algorithm)]
@@ -377,6 +381,17 @@ class StreamTests(unittest.TestCase):
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.is_streamed, True)
             self.assertEqual(self.file_size, len(response.data))
+
+    def test_disabled_stream(self):
+        """Test that stream compression can be disabled."""
+        Compress(self.app)
+        self.app.config["COMPRESS_STREAMS"] = True
+        client = self.app.test_client()
+        for algorithm in ('gzip', 'deflate', 'br'):
+            headers = [('Accept-Encoding', algorithm)]
+            response = client.get('/stream/large', headers=headers)
+            self.assertIn('Content-Encoding', response.headers)
+            self.assertGreater(self.file_size, len(response.data))
 
 
 if __name__ == '__main__':

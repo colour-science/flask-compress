@@ -3,6 +3,7 @@
 *.sw[klmnop]
 # python
 *.py[co~]
+.python-version
 # Ignoring build dir
 /build
 /dist

@@ -2,6 +2,10 @@
 
 All notable changes to `flask-compress` will be documented in this file.
 
+## 1.13 (2022-09-21)
+
+- Re-enable compression for streaming, but hide it behind a new option `COMPRESS_STREAMS` that defaults to `True`. See [#36](https://github.com/colour-science/flask-compress/pull/36)
+
 ## 1.12 (2022-04-28)
 
 - Disable compression when response is streamed, see [#31](https://github.com/colour-science/flask-compress/pull/31)

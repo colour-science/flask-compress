@@ -130,7 +130,7 @@ Within your Flask application's settings you can provide the following settings 
 
 | Option | Description | Default |
 | ------ | ----------- | ------- |
-| `COMPRESS_MIMETYPES` | Set the list of mimetypes to compress here. | `[`<br>`'text/html',`<br>`'text/css',`<br>`'text/xml',`<br>`'application/json',`<br>`'application/javascript'`<br>`]` |
+| `COMPRESS_MIMETYPES` | Set the list of mimetypes to compress here. | `[`<br>`'application/javascript'`<br>`'application/json',`<br>`'text/css',`<br>`'text/html',`<br>`'text/javascript'`<br>`'text/xml'`<br>`]` |
 | `COMPRESS_LEVEL` | Specifies the gzip compression level. | `6` |
 | `COMPRESS_BR_LEVEL` | Specifies the Brotli compression level. Ranges from 0 to 11. | `4` |
 | `COMPRESS_BR_MODE` | For Brotli, the compression mode. The options are 0, 1, or 2. These correspond to "generic", "text" (for UTF-8 input), and "font" (for WOFF 2.0). | `0` |

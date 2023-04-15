@@ -69,7 +69,7 @@ class Compress(object):
                 'application/json',
                 'text/css',
                 'text/html',
-                'text/javascript'
+                'text/javascript',
                 'text/xml',
             ]),
             ('COMPRESS_LEVEL', 6),

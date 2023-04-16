@@ -15,8 +15,14 @@ class DefaultsTest(unittest.TestCase):
 
     def test_mimetypes_default(self):
         """ Tests COMPRESS_MIMETYPES default value is correctly set. """
-        defaults = ['text/html', 'text/css', 'text/xml', 'application/json',
-                    'application/javascript']
+        defaults = [
+            'application/javascript',
+            'application/json',
+            'text/css',
+            'text/html',
+            'text/javascript',
+            'text/xml',
+        ]
         self.assertEqual(self.app.config['COMPRESS_MIMETYPES'], defaults)
 
     def test_level_default(self):

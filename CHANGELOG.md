@@ -2,6 +2,11 @@
 
 All notable changes to `flask-compress` will be documented in this file.
 
+## 1.14 (2023-09-11)
+
+- Add `text/javascript` mimetype. See [#41](https://github.com/colour-science/flask-compress/pull/41)
+- Use [brotlicffi](https://github.com/python-hyper/brotlicffi) for PyPy
+
 ## 1.13 (2022-09-21)
 
 - Re-enable compression for streaming, but hide it behind a new option `COMPRESS_STREAMS` that defaults to `True`. See [#36](https://github.com/colour-science/flask-compress/pull/36)

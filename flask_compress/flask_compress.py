@@ -11,7 +11,11 @@ from io import BytesIO
 
 from collections import defaultdict
 
-import brotli
+try:
+    import brotlicffi as brotli
+except ImportError:
+    import brotli
+
 from flask import request, after_this_request, current_app
 
 

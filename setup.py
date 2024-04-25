@@ -21,7 +21,8 @@ setup(
         'flask',
         "brotli; platform_python_implementation!='PyPy'",
         "brotlicffi; platform_python_implementation=='PyPy'",
-        "pyzstd"
+        "zstandard; platform_python_implementation!='PyPy'",
+        "zstandard[cffi]; platform_python_implementation=='PyPy'",
     ],
     setup_requires=[
         'setuptools_scm',

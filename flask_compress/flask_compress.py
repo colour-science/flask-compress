@@ -16,7 +16,7 @@ try:
 except ImportError:
     import brotli
 
-import pyzstd as zstd
+import zstandard
 
 from flask import request, after_this_request, current_app
 
@@ -250,4 +250,4 @@ class Compress(object):
                                    lgwin=app.config['COMPRESS_BR_WINDOW'],
                                    lgblock=app.config['COMPRESS_BR_BLOCK'])
         elif algorithm == 'zstd':
-            return zstd.compress(response.get_data(), app.config['COMPRESS_ZSTD_LEVEL'])
+            return zstandard.ZstdCompressor(app.config['COMPRESS_ZSTD_LEVEL']).compress(response.get_data())

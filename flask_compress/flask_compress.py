@@ -16,6 +16,8 @@ try:
 except ImportError:
     import brotli
 
+import zstandard
+
 from flask import request, after_this_request, current_app
 
 
@@ -81,13 +83,14 @@ class Compress(object):
             ('COMPRESS_BR_MODE', 0),
             ('COMPRESS_BR_WINDOW', 22),
             ('COMPRESS_BR_BLOCK', 0),
+            ('COMPRESS_ZSTD_LEVEL', 3),
             ('COMPRESS_DEFLATE_LEVEL', -1),
             ('COMPRESS_MIN_SIZE', 500),
             ('COMPRESS_CACHE_KEY', None),
             ('COMPRESS_CACHE_BACKEND', None),
             ('COMPRESS_REGISTER', True),
             ('COMPRESS_STREAMS', True),
-            ('COMPRESS_ALGORITHM', ['br', 'gzip', 'deflate']),
+            ('COMPRESS_ALGORITHM', ['zstd', 'br', 'gzip', 'deflate']),
         ]
 
         for k, v in defaults:
@@ -115,7 +118,7 @@ class Compress(object):
         means the client prefers that algorithm more).
 
         :param accept_encoding_header: Content of the `Accept-Encoding` header
-        :return: name of a compression algorithm (`gzip`, `deflate`, `br`) or `None` if
+        :return: name of a compression algorithm (`gzip`, `deflate`, `br`, 'zstd') or `None` if
             the client and server don't agree on any.
         """
         # A flag denoting that client requested using any (`*`) algorithm,
@@ -188,7 +191,7 @@ class Compress(object):
             response.mimetype not in app.config["COMPRESS_MIMETYPES"] or
             response.status_code < 200 or
             response.status_code >= 300 or
-            (response.is_streamed and app.config["COMPRESS_STREAMS"] is False)or
+            (response.is_streamed and app.config["COMPRESS_STREAMS"] is False) or
             "Content-Encoding" in response.headers or
             (response.content_length is not None and
              response.content_length < app.config["COMPRESS_MIN_SIZE"])):
@@ -246,3 +249,5 @@ class Compress(object):
                                    quality=app.config['COMPRESS_BR_LEVEL'],
                                    lgwin=app.config['COMPRESS_BR_WINDOW'],
                                    lgblock=app.config['COMPRESS_BR_BLOCK'])
+        elif algorithm == 'zstd':
+            return zstandard.ZstdCompressor(app.config['COMPRESS_ZSTD_LEVEL']).compress(response.get_data())

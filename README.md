@@ -136,10 +136,11 @@ Within your Flask application's settings you can provide the following settings 
 | `COMPRESS_BR_MODE` | For Brotli, the compression mode. The options are 0, 1, or 2. These correspond to "generic", "text" (for UTF-8 input), and "font" (for WOFF 2.0). | `0` |
 | `COMPRESS_BR_WINDOW` | For Brotli, this specifies the base-2 logarithm of the sliding window size. Ranges from 10 to 24. | `22` |
 | `COMPRESS_BR_BLOCK` | For Brotli, this provides the base-2 logarithm of the maximum input block size. If zero is provided, value will be determined based on the quality. Ranges from 16 to 24. | `0` |
+| `COMPRESS_ZSTD_LEVEL` | Specifies the ZStandard compression level. Ranges from 1 to 22. Levels >= 20, labeled ultra, should be used with caution, as they require more memory. 0 means use the default level. -131072 to -1, negative levels extend the range of speed vs ratio preferences. The lower the level, the faster the speed, but at the cost of compression ratio. | `3` |
 | `COMPRESS_DEFLATE_LEVEL` | Specifies the deflate compression level. | `-1` |
 | `COMPRESS_MIN_SIZE` | Specifies the minimum file size threshold for compressing files. | `500` |
 | `COMPRESS_CACHE_KEY` | Specifies the cache key method for lookup/storage of response data. | `None` |
 | `COMPRESS_CACHE_BACKEND` | Specified the backend for storing the cached response data. | `None` |
 | `COMPRESS_REGISTER` | Specifies if compression should be automatically registered. | `True` |
-| `COMPRESS_ALGORITHM` | Supported compression algorithms. | `['br', 'gzip', 'deflate']` |
+| `COMPRESS_ALGORITHM` | Supported compression algorithms. | `['zstd', 'br', 'gzip', 'deflate']` |
 | `COMPRESS_STREAMS` | Compress content streams. | `True` |

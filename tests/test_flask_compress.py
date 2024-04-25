@@ -35,7 +35,7 @@ class DefaultsTest(unittest.TestCase):
 
     def test_algorithm_default(self):
         """ Tests COMPRESS_ALGORITHM default value is correctly set. """
-        self.assertEqual(self.app.config['COMPRESS_ALGORITHM'], ['br', 'gzip', 'deflate'])
+        self.assertEqual(self.app.config['COMPRESS_ALGORITHM'], ['zstd', 'br', 'gzip', 'deflate'])
 
     def test_default_deflate_settings(self):
         """ Tests COMPRESS_DELATE_LEVEL default value is correctly set. """
@@ -60,6 +60,10 @@ class DefaultsTest(unittest.TestCase):
     def test_stream(self):
         """ Tests COMPRESS_STREAMS default value is correctly set. """
         self.assertEqual(self.app.config['COMPRESS_STREAMS'], True)
+
+    def test_quality_level_default_zstd(self):
+        """ Tests COMPRESS_ZSTD_LEVEL default value is correctly set. """
+        self.assertEqual(self.app.config['COMPRESS_ZSTD_LEVEL'], 3)
 
 class InitTests(unittest.TestCase):
     def setUp(self):
@@ -107,6 +111,16 @@ class UrlTests(unittest.TestCase):
     def test_br_algorithm(self):
         client = self.app.test_client()
         headers = [('Accept-Encoding', 'br')]
+
+        response = client.options('/small/', headers=headers)
+        self.assertEqual(response.status_code, 200)
+
+        response = client.options('/large/', headers=headers)
+        self.assertEqual(response.status_code, 200)
+
+    def test_zstd_algorithm(self):
+        client = self.app.test_client()
+        headers = [('Accept-Encoding', 'zstd')]
 
         response = client.options('/small/', headers=headers)
         self.assertEqual(response.status_code, 200)
@@ -175,6 +189,19 @@ class UrlTests(unittest.TestCase):
 
         self.assertNotEqual(response_size, response1_size)
 
+    def test_zstd_compression_level(self):
+        """ Tests that COMPRESS_ZSTD_LEVEL correctly affects response data. """
+        self.app.config['COMPRESS_ZSTD_LEVEL'] = 1
+        client = self.app.test_client()
+        response = client.get('/large/', headers=[('Accept-Encoding', 'zstd')])
+        response1_size = len(response.data)
+
+        self.app.config['COMPRESS_ZSTD_LEVEL'] = 11
+        client = self.app.test_client()
+        response = client.get('/large/', headers=[('Accept-Encoding', 'zstd')])
+        response11_size = len(response.data)
+
+        self.assertNotEqual(response1_size, response11_size)
 
 class CompressionAlgoTests(unittest.TestCase):
     """
@@ -306,7 +333,7 @@ class CompressionAlgoTests(unittest.TestCase):
 
     def test_content_encoding_is_correct(self):
         """ Test that the `Content-Encoding` header matches the compression algorithm """
-        self.app.config['COMPRESS_ALGORITHM'] = ['br', 'gzip', 'deflate']
+        self.app.config['COMPRESS_ALGORITHM'] = ['zstd', 'br', 'gzip', 'deflate']
         Compress(self.app)
 
         headers_gzip = [('Accept-Encoding', 'gzip')]
@@ -327,6 +354,11 @@ class CompressionAlgoTests(unittest.TestCase):
         self.assertIn('Content-Encoding', response_deflate.headers)
         self.assertEqual(response_deflate.headers.get('Content-Encoding'), 'deflate')
 
+        headers_zstd = [('Accept-Encoding', 'zstd')]
+        client = self.app.test_client()
+        response_zstd = client.options('/small/', headers=headers_zstd)
+        self.assertIn('Content-Encoding', response_zstd.headers)
+        self.assertEqual(response_zstd.headers.get('Content-Encoding'), 'zstd')
 
 class CompressionPerViewTests(unittest.TestCase):
     def setUp(self):
@@ -381,7 +413,7 @@ class StreamTests(unittest.TestCase):
         """ Tests compression is skipped when response is streamed"""
         Compress(self.app)
         client = self.app.test_client()
-        for algorithm in ('gzip', 'deflate', 'br', ''):
+        for algorithm in ('gzip', 'deflate', 'br', 'zstd', ''):
             headers = [('Accept-Encoding', algorithm)]
             response = client.get('/stream/large', headers=headers)
             self.assertEqual(response.status_code, 200)
@@ -393,7 +425,7 @@ class StreamTests(unittest.TestCase):
         Compress(self.app)
         self.app.config["COMPRESS_STREAMS"] = True
         client = self.app.test_client()
-        for algorithm in ('gzip', 'deflate', 'br'):
+        for algorithm in ('gzip', 'deflate', 'br', 'zstd'):
             headers = [('Accept-Encoding', algorithm)]
             response = client.get('/stream/large', headers=headers)
             self.assertIn('Content-Encoding', response.headers)

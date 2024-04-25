@@ -10,7 +10,7 @@ setup(
     license='MIT',
     author='Thomas Mansencal',
     author_email='thomas.mansencal@gmail.com',
-    description='Compress responses in your Flask app with gzip, deflate or brotli.',
+    description='Compress responses in your Flask app with gzip, deflate, brotli or zstandard.',
     long_description=LONG_DESCRIPTION,
     long_description_content_type='text/markdown',
     packages=find_packages(exclude=['tests']),
@@ -20,7 +20,9 @@ setup(
     install_requires=[
         'flask',
         "brotli; platform_python_implementation!='PyPy'",
-        "brotlicffi; platform_python_implementation=='PyPy'"
+        "brotlicffi; platform_python_implementation=='PyPy'",
+        "zstandard; platform_python_implementation!='PyPy'",
+        "zstandard[cffi]; platform_python_implementation=='PyPy'",
     ],
     setup_requires=[
         'setuptools_scm',

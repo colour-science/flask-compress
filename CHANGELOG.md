@@ -2,6 +2,10 @@
 
 All notable changes to `flask-compress` will be documented in this file.
 
+## Unreleased
+
+- Drop support for Python 3.8 and lower.
+
 ## 1.15 (2024-04-24)
 
 - Add support of Zstandard compression.

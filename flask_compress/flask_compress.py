@@ -1,10 +1,8 @@
-
 # Authors: William Fagan
 # Copyright (c) 2013-2017 William Fagan
 # License: The MIT License (MIT)
 
 import functools
-import sys
 import zlib
 from collections import defaultdict
 from gzip import GzipFile
@@ -18,7 +16,8 @@ except ImportError:
 import zstandard
 from flask import after_this_request, current_app, request
 
-class DictCache(object):
+
+class DictCache:
 
     def __init__(self):
         self.data = {}
@@ -30,7 +29,7 @@ class DictCache(object):
         self.data[key] = value
 
 
-class Compress(object):
+class Compress:
     """
     The Compress object allows your application to use Flask-Compress.
 
@@ -41,6 +40,7 @@ class Compress(object):
     :param app: optional :class:`flask.Flask` application object
     :type app: :class:`flask.Flask` or None
     """
+
     def __init__(self, app=None):
         """
         An alternative way to pass your :class:`flask.Flask` application
@@ -55,44 +55,46 @@ class Compress(object):
 
     def init_app(self, app):
         defaults = [
-            ('COMPRESS_MIMETYPES', [
-                'application/javascript',  # Obsolete (RFC 9239)
-                'application/json',
-                'text/css',
-                'text/html',
-                'text/javascript',
-                'text/xml',
-            ]),
-            ('COMPRESS_LEVEL', 6),
-            ('COMPRESS_BR_LEVEL', 4),
-            ('COMPRESS_BR_MODE', 0),
-            ('COMPRESS_BR_WINDOW', 22),
-            ('COMPRESS_BR_BLOCK', 0),
-            ('COMPRESS_ZSTD_LEVEL', 3),
-            ('COMPRESS_DEFLATE_LEVEL', -1),
-            ('COMPRESS_MIN_SIZE', 500),
-            ('COMPRESS_CACHE_KEY', None),
-            ('COMPRESS_CACHE_BACKEND', None),
-            ('COMPRESS_REGISTER', True),
-            ('COMPRESS_STREAMS', True),
-            ('COMPRESS_ALGORITHM', ['zstd', 'br', 'gzip', 'deflate']),
+            (
+                "COMPRESS_MIMETYPES",
+                [
+                    "application/javascript",  # Obsolete (RFC 9239)
+                    "application/json",
+                    "text/css",
+                    "text/html",
+                    "text/javascript",
+                    "text/xml",
+                ],
+            ),
+            ("COMPRESS_LEVEL", 6),
+            ("COMPRESS_BR_LEVEL", 4),
+            ("COMPRESS_BR_MODE", 0),
+            ("COMPRESS_BR_WINDOW", 22),
+            ("COMPRESS_BR_BLOCK", 0),
+            ("COMPRESS_ZSTD_LEVEL", 3),
+            ("COMPRESS_DEFLATE_LEVEL", -1),
+            ("COMPRESS_MIN_SIZE", 500),
+            ("COMPRESS_CACHE_KEY", None),
+            ("COMPRESS_CACHE_BACKEND", None),
+            ("COMPRESS_REGISTER", True),
+            ("COMPRESS_STREAMS", True),
+            ("COMPRESS_ALGORITHM", ["zstd", "br", "gzip", "deflate"]),
         ]
 
         for k, v in defaults:
             app.config.setdefault(k, v)
 
-        backend = app.config['COMPRESS_CACHE_BACKEND']
+        backend = app.config["COMPRESS_CACHE_BACKEND"]
         self.cache = backend() if backend else None
-        self.cache_key = app.config['COMPRESS_CACHE_KEY']
+        self.cache_key = app.config["COMPRESS_CACHE_KEY"]
 
-        algo = app.config['COMPRESS_ALGORITHM']
+        algo = app.config["COMPRESS_ALGORITHM"]
         if isinstance(algo, str):
-            self.enabled_algorithms = [i.strip() for i in algo.split(',')]
+            self.enabled_algorithms = [i.strip() for i in algo.split(",")]
         else:
             self.enabled_algorithms = list(algo)
 
-        if (app.config['COMPRESS_REGISTER'] and
-                app.config['COMPRESS_MIMETYPES']):
+        if app.config["COMPRESS_REGISTER"] and app.config["COMPRESS_MIMETYPES"]:
             app.after_request(self.after_request)
 
     def _choose_compress_algorithm(self, accept_encoding_header):
@@ -116,15 +118,15 @@ class Compress(object):
         # Set of supported algorithms
         server_algos_set = set(self.enabled_algorithms)
 
-        for part in accept_encoding_header.lower().split(','):
+        for part in accept_encoding_header.lower().split(","):
             part = part.strip()
-            if ';q=' in part:
+            if ";q=" in part:
                 # If the client associated a quality factor with an algorithm,
                 # try to parse it. We could do the matching using a regex, but
                 # the format is so simple that it would be overkill.
-                algo = part.split(';')[0].strip()
+                algo = part.split(";")[0].strip()
                 try:
-                    quality = float(part.split('=')[1].strip())
+                    quality = float(part.split("=")[1].strip())
                 except ValueError:
                     quality = 1.0
             else:
@@ -132,10 +134,10 @@ class Compress(object):
                 algo = part
                 quality = 1.0
 
-            if algo == '*':
+            if algo == "*":
                 if quality > 0:
                     fallback_to_any = True
-            elif algo == 'identity':  # identity means 'no compression asked'
+            elif algo == "identity":  # identity means 'no compression asked'
                 algos_by_quality[quality].add(None)
             elif algo in server_algos_set:
                 algos_by_quality[quality].add(algo)
@@ -163,23 +165,27 @@ class Compress(object):
     def after_request(self, response):
         app = self.app or current_app
 
-        vary = response.headers.get('Vary')
+        vary = response.headers.get("Vary")
         if not vary:
-            response.headers['Vary'] = 'Accept-Encoding'
-        elif 'accept-encoding' not in vary.lower():
-            response.headers['Vary'] = '{}, Accept-Encoding'.format(vary)
+            response.headers["Vary"] = "Accept-Encoding"
+        elif "accept-encoding" not in vary.lower():
+            response.headers["Vary"] = f"{vary}, Accept-Encoding"
 
-        accept_encoding = request.headers.get('Accept-Encoding', '')
+        accept_encoding = request.headers.get("Accept-Encoding", "")
         chosen_algorithm = self._choose_compress_algorithm(accept_encoding)
 
-        if (chosen_algorithm is None or
-            response.mimetype not in app.config["COMPRESS_MIMETYPES"] or
-            response.status_code < 200 or
-            response.status_code >= 300 or
-            (response.is_streamed and app.config["COMPRESS_STREAMS"] is False) or
-            "Content-Encoding" in response.headers or
-            (response.content_length is not None and
-             response.content_length < app.config["COMPRESS_MIN_SIZE"])):
+        if (
+            chosen_algorithm is None
+            or response.mimetype not in app.config["COMPRESS_MIMETYPES"]
+            or response.status_code < 200
+            or response.status_code >= 300
+            or (response.is_streamed and app.config["COMPRESS_STREAMS"] is False)
+            or "Content-Encoding" in response.headers
+            or (
+                response.content_length is not None
+                and response.content_length < app.config["COMPRESS_MIN_SIZE"]
+            )
+        ):
             return response
 
         response.direct_passthrough = False
@@ -195,14 +201,14 @@ class Compress(object):
 
         response.set_data(compressed_content)
 
-        response.headers['Content-Encoding'] = chosen_algorithm
-        response.headers['Content-Length'] = response.content_length
+        response.headers["Content-Encoding"] = chosen_algorithm
+        response.headers["Content-Length"] = response.content_length
 
         # "123456789"   => "123456789:gzip"   - A strong ETag validator
         # W/"123456789" => W/"123456789:gzip" - A weak ETag validator
-        etag = response.headers.get('ETag')
+        etag = response.headers.get("ETag")
         if etag:
-            response.headers['ETag'] = '{0}:{1}"'.format(etag[:-1], chosen_algorithm)
+            response.headers["ETag"] = f'{etag[:-1]}:{chosen_algorithm}"'
 
         return response
 
@@ -213,28 +219,36 @@ class Compress(object):
                 @after_this_request
                 def compressor(response):
                     return self.after_request(response)
+
                 return f(*args, **kwargs)
+
             return decorated_function
+
         return decorator
 
     def compress(self, app, response, algorithm):
-        if algorithm == 'gzip':
+        if algorithm == "gzip":
             gzip_buffer = BytesIO()
-            with GzipFile(mode='wb',
-                          compresslevel=app.config['COMPRESS_LEVEL'],
-                          fileobj=gzip_buffer) as gzip_file:
+            with GzipFile(
+                mode="wb",
+                compresslevel=app.config["COMPRESS_LEVEL"],
+                fileobj=gzip_buffer,
+            ) as gzip_file:
                 gzip_file.write(response.get_data())
             return gzip_buffer.getvalue()
-        elif algorithm == 'deflate':
-            return zlib.compress(response.get_data(),
-                                 app.config['COMPRESS_DEFLATE_LEVEL'])
-        elif algorithm == 'br':
-            return brotli.compress(response.get_data(),
-                                   mode=app.config['COMPRESS_BR_MODE'],
-                                   quality=app.config['COMPRESS_BR_LEVEL'],
-                                   lgwin=app.config['COMPRESS_BR_WINDOW'],
-                                   lgblock=app.config['COMPRESS_BR_BLOCK'])
-        elif algorithm == 'zstd':
-            return zstandard.ZstdCompressor(app.config['COMPRESS_ZSTD_LEVEL']).compress(
+        elif algorithm == "deflate":
+            return zlib.compress(
+                response.get_data(), app.config["COMPRESS_DEFLATE_LEVEL"]
+            )
+        elif algorithm == "br":
+            return brotli.compress(
+                response.get_data(),
+                mode=app.config["COMPRESS_BR_MODE"],
+                quality=app.config["COMPRESS_BR_LEVEL"],
+                lgwin=app.config["COMPRESS_BR_WINDOW"],
+                lgblock=app.config["COMPRESS_BR_BLOCK"],
+            )
+        elif algorithm == "zstd":
+            return zstandard.ZstdCompressor(app.config["COMPRESS_ZSTD_LEVEL"]).compress(
                 response.get_data()
             )

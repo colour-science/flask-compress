@@ -24,6 +24,19 @@ repos:
           - "--fix=lf"
       - id: "trailing-whitespace"
 
+  - repo: "https://github.com/asottile/pyupgrade"
+    rev: "v3.17.0"
+    hooks:
+      - id: "pyupgrade"
+        name: "Enforce Python 3.9+ idioms"
+        args:
+          - "--py39-plus"
+
+  - repo: "https://github.com/psf/black-pre-commit-mirror"
+    rev: "24.8.0"
+    hooks:
+      - id: "black"
+
   - repo: "https://github.com/pycqa/isort"
     rev: "5.13.2"
     hooks:

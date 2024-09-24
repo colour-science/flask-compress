@@ -3,7 +3,6 @@
 # Copyright (c) 2013-2017 William Fagan
 # License: The MIT License (MIT)
 
-import sys
 import functools
 from gzip import GzipFile
 import zlib
@@ -19,18 +18,6 @@ except ImportError:
 import zstandard
 
 from flask import request, after_this_request, current_app
-
-
-if sys.version_info[:2] == (2, 6):
-    class GzipFile(GzipFile):
-        """ Backport of context manager support for python 2.6"""
-        def __enter__(self):
-            if self.fileobj is None:
-                raise ValueError("I/O operation on closed GzipFile object")
-            return self
-
-        def __exit__(self, *args):
-            self.close()
 
 
 class DictCache(object):

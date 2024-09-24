@@ -3,13 +3,12 @@
 # Copyright (c) 2013-2017 William Fagan
 # License: The MIT License (MIT)
 
-import sys
 import functools
-from gzip import GzipFile
+import sys
 import zlib
-from io import BytesIO
-
 from collections import defaultdict
+from gzip import GzipFile
+from io import BytesIO
 
 try:
     import brotlicffi as brotli
@@ -17,9 +16,7 @@ except ImportError:
     import brotli
 
 import zstandard
-
-from flask import request, after_this_request, current_app
-
+from flask import after_this_request, current_app, request
 
 if sys.version_info[:2] == (2, 6):
     class GzipFile(GzipFile):

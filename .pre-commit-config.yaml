@@ -24,9 +24,22 @@ repos:
           - "--fix=lf"
       - id: "trailing-whitespace"
 
+  - repo: "https://github.com/pycqa/isort"
+    rev: "5.13.2"
+    hooks:
+      - id: "isort"
+
+  - repo: "https://github.com/pycqa/flake8"
+    rev: "7.1.1"
+    hooks:
+      - id: "flake8"
+        additional_dependencies:
+          - "flake8-bugbear==24.8.19"
+
   - repo: "https://github.com/python-jsonschema/check-jsonschema"
     rev: "0.29.2"
     hooks:
+      - id: "check-dependabot"
       - id: "check-github-workflows"
 
   - repo: "https://github.com/rhysd/actionlint"

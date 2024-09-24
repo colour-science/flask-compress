@@ -4,11 +4,11 @@
 # License: The MIT License (MIT)
 
 import functools
-from gzip import GzipFile
+import sys
 import zlib
-from io import BytesIO
-
 from collections import defaultdict
+from gzip import GzipFile
+from io import BytesIO
 
 try:
     import brotlicffi as brotli
@@ -16,9 +16,7 @@ except ImportError:
     import brotli
 
 import zstandard
-
-from flask import request, after_this_request, current_app
-
+from flask import after_this_request, current_app, request
 
 class DictCache(object):
 
@@ -105,8 +103,8 @@ class Compress(object):
         means the client prefers that algorithm more).
 
         :param accept_encoding_header: Content of the `Accept-Encoding` header
-        :return: name of a compression algorithm (`gzip`, `deflate`, `br`, 'zstd') or `None` if
-            the client and server don't agree on any.
+        :return: name of a compression algorithm (`gzip`, `deflate`, `br`, 'zstd')
+            or `None` if the client and server don't agree on any.
         """
         # A flag denoting that client requested using any (`*`) algorithm,
         # in case a specific one is not supported by the server
@@ -144,8 +142,8 @@ class Compress(object):
 
         # Choose the algorithm with the highest quality factor that the server supports.
         #
-        # If there are multiple equally good options, choose the first supported algorithm
-        # from server configuration.
+        # If there are multiple equally good options,
+        # choose the first supported algorithm from server configuration.
         #
         # If the server doesn't support any algorithm that the client requested but
         # there's a special wildcard algorithm request (`*`), choose the first supported
@@ -237,4 +235,6 @@ class Compress(object):
                                    lgwin=app.config['COMPRESS_BR_WINDOW'],
                                    lgblock=app.config['COMPRESS_BR_BLOCK'])
         elif algorithm == 'zstd':
-            return zstandard.ZstdCompressor(app.config['COMPRESS_ZSTD_LEVEL']).compress(response.get_data())
+            return zstandard.ZstdCompressor(app.config['COMPRESS_ZSTD_LEVEL']).compress(
+                response.get_data()
+            )

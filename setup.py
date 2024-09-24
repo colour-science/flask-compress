@@ -10,7 +10,9 @@ setup(
     license='MIT',
     author='Thomas Mansencal',
     author_email='thomas.mansencal@gmail.com',
-    description='Compress responses in your Flask app with gzip, deflate, brotli or zstandard.',
+    description=(
+        'Compress responses in your Flask app with gzip, deflate, brotli or zstandard.'
+    ),
     long_description=LONG_DESCRIPTION,
     long_description_content_type='text/markdown',
     packages=find_packages(exclude=['tests']),

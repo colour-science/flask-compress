@@ -35,7 +35,9 @@ class DefaultsTest(unittest.TestCase):
 
     def test_algorithm_default(self):
         """ Tests COMPRESS_ALGORITHM default value is correctly set. """
-        self.assertEqual(self.app.config['COMPRESS_ALGORITHM'], ['zstd', 'br', 'gzip', 'deflate'])
+        self.assertEqual(
+            self.app.config['COMPRESS_ALGORITHM'], ['zstd', 'br', 'gzip', 'deflate']
+        )
 
     def test_default_deflate_settings(self):
         """ Tests COMPRESS_DELATE_LEVEL default value is correctly set. """
@@ -64,6 +66,7 @@ class DefaultsTest(unittest.TestCase):
     def test_quality_level_default_zstd(self):
         """ Tests COMPRESS_ZSTD_LEVEL default value is correctly set. """
         self.assertEqual(self.app.config['COMPRESS_ZSTD_LEVEL'], 3)
+
 
 class InitTests(unittest.TestCase):
     def setUp(self):
@@ -203,6 +206,7 @@ class UrlTests(unittest.TestCase):
 
         self.assertNotEqual(response1_size, response11_size)
 
+
 class CompressionAlgoTests(unittest.TestCase):
     """
     Test different scenarios for compression algorithm negotiation between
@@ -213,9 +217,10 @@ class CompressionAlgoTests(unittest.TestCase):
     def setUp(self):
         super(CompressionAlgoTests, self).setUp()
 
-        # Create the app here but don't call `Compress()` on it just yet; we need
-        # to be able to modify the settings in various tests. Calling `Compress(self.app)`
-        # twice would result in two `@after_request` handlers, which would be bad.
+        # Create the app here but don't call `Compress()` on it just yet;
+        # we need to be able to modify the settings in various tests.
+        # Calling `Compress(self.app)` twice would result in
+        # two `@after_request` handlers, which would be bad.
         self.app = Flask(__name__)
         self.app.testing = True
 
@@ -227,7 +232,9 @@ class CompressionAlgoTests(unittest.TestCase):
             return render_template('small.html')
 
     def test_setting_compress_algorithm_simple_string(self):
-        """ Test that a single entry in `COMPRESS_ALGORITHM` still works for backwards compatibility """
+        """Test that a single entry in `COMPRESS_ALGORITHM` still works.
+
+        This is a backwards-compatibility test."""
         self.app.config['COMPRESS_ALGORITHM'] = 'gzip'
         c = Compress(self.app)
         self.assertListEqual(c.enabled_algorithms, ['gzip'])
@@ -263,7 +270,7 @@ class CompressionAlgoTests(unittest.TestCase):
         accept_encoding = 'br, gzip, zstd'
         self.app.config['COMPRESS_ALGORITHM'] = ['zstd', 'br', 'gzip']
         c = Compress(self.app)
-        # When the decision is tied, we expect to see the first server-configured algorithm
+        # When the decision is tied, we expect the first server-configured algorithm
         self.assertEqual(c._choose_compress_algorithm(accept_encoding), 'zstd')
 
     def test_multiple_algos_unsupported(self):
@@ -274,7 +281,7 @@ class CompressionAlgoTests(unittest.TestCase):
         self.assertIsNone(c._choose_compress_algorithm(accept_encoding))
 
     def test_multiple_algos_with_wildcard(self):
-        """ Tests requesting multiple unsupported compression algorithms and a wildcard """
+        """Request multiple unsupported compression algorithms and a wildcard"""
         accept_encoding = 'future-algo, alien-algo, forbidden-algo, *'
         self.app.config['COMPRESS_ALGORITHM'] = ['zstd', 'br', 'gzip']
         c = Compress(self.app)
@@ -282,14 +289,14 @@ class CompressionAlgoTests(unittest.TestCase):
         self.assertEqual(c._choose_compress_algorithm(accept_encoding), 'zstd')
 
     def test_multiple_algos_with_different_quality(self):
-        """ Tests requesting multiple supported compression algorithms with different q-factors """
+        """Request multiple supported compression algorithms with different q-factors"""
         accept_encoding = 'zstd;q=0.8, br;q=0.9, gzip;q=0.5'
         self.app.config['COMPRESS_ALGORITHM'] = ['zstd', 'br', 'gzip']
         c = Compress(self.app)
         self.assertEqual(c._choose_compress_algorithm(accept_encoding), 'br')
 
     def test_multiple_algos_with_equal_quality(self):
-        """ Tests requesting multiple supported compression algorithms with equal q-factors """
+        """Request multiple supported compression algorithms with equal q-factors"""
         accept_encoding = 'zstd;q=0.5, br;q=0.5, gzip;q=0.5'
         self.app.config['COMPRESS_ALGORITHM'] = ['gzip', 'br', 'zstd']
         c = Compress(self.app)
@@ -297,7 +304,7 @@ class CompressionAlgoTests(unittest.TestCase):
         self.assertEqual(c._choose_compress_algorithm(accept_encoding), 'gzip')
 
     def test_default_quality_is_1(self):
-        """ Tests that when making mixed-quality requests, the default q-factor is 1.0 """
+        """Tests that when making mixed-quality requests, the default q-factor is 1.0"""
         accept_encoding = 'deflate, br;q=0.999, gzip;q=0.5'
         self.app.config['COMPRESS_ALGORITHM'] = ['gzip', 'br', 'deflate']
         c = Compress(self.app)
@@ -332,7 +339,7 @@ class CompressionAlgoTests(unittest.TestCase):
         self.assertEqual(c._choose_compress_algorithm(accept_encoding), None)
 
     def test_content_encoding_is_correct(self):
-        """ Test that the `Content-Encoding` header matches the compression algorithm """
+        """Test that the `Content-Encoding` header matches the compression algorithm"""
         self.app.config['COMPRESS_ALGORITHM'] = ['zstd', 'br', 'gzip', 'deflate']
         Compress(self.app)
 
@@ -359,6 +366,7 @@ class CompressionAlgoTests(unittest.TestCase):
         response_zstd = client.options('/small/', headers=headers_zstd)
         self.assertIn('Content-Encoding', response_zstd.headers)
         self.assertEqual(response_zstd.headers.get('Content-Encoding'), 'zstd')
+
 
 class CompressionPerViewTests(unittest.TestCase):
     def setUp(self):

@@ -41,7 +41,7 @@ jobs:
       run: pip install tox
     - name: Run tox
       # Run tox using the version of Python in `PATH`
-      run: tox -e py
+      run: tox -e py,coverage_report-ci
 
   dist:
     runs-on: ubuntu-latest

@@ -214,7 +214,7 @@ class CompressionAlgoTests(unittest.TestCase):
     """
 
     def setUp(self):
-        super(CompressionAlgoTests, self).setUp()
+        super().setUp()
 
         # Create the app here but don't call `Compress()` on it just yet;
         # we need to be able to modify the settings in various tests.
@@ -411,8 +411,7 @@ class StreamTests(unittest.TestCase):
         def stream():
             def _stream():
                 with open(self.file_path) as f:
-                    for line in f.readlines():
-                        yield line
+                    yield from f.readlines()
 
             return self.app.response_class(_stream(), mimetype="text/html")
 

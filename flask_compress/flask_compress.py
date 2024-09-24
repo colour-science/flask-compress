@@ -169,7 +169,7 @@ class Compress:
         if not vary:
             response.headers["Vary"] = "Accept-Encoding"
         elif "accept-encoding" not in vary.lower():
-            response.headers["Vary"] = "{}, Accept-Encoding".format(vary)
+            response.headers["Vary"] = f"{vary}, Accept-Encoding"
 
         accept_encoding = request.headers.get("Accept-Encoding", "")
         chosen_algorithm = self._choose_compress_algorithm(accept_encoding)
@@ -208,7 +208,7 @@ class Compress:
         # W/"123456789" => W/"123456789:gzip" - A weak ETag validator
         etag = response.headers.get("ETag")
         if etag:
-            response.headers["ETag"] = '{0}:{1}"'.format(etag[:-1], chosen_algorithm)
+            response.headers["ETag"] = f'{etag[:-1]}:{chosen_algorithm}"'
 
         return response
 

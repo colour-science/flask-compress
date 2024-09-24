@@ -17,18 +17,6 @@ import zstandard
 from flask import after_this_request, current_app, request
 
 
-class DictCache:
-
-    def __init__(self):
-        self.data = {}
-
-    def get(self, key):
-        return self.data.get(key)
-
-    def set(self, key, value):
-        self.data[key] = value
-
-
 class Compress:
     """
     The Compress object allows your application to use Flask-Compress.

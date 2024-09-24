@@ -11,18 +11,18 @@ The preferred solution is to have a server (like [Nginx](http://wiki.nginx.org/M
 
 ## How it works
 
-Flask-Compress both adds the various headers required for a compressed response and compresses the response data. 
+Flask-Compress both adds the various headers required for a compressed response and compresses the response data.
 This makes serving compressed static files extremely easy.
 
 Internally, every time a request is made the extension will check if it matches one of the compressible MIME types
-and whether the client and the server use some common compression algorithm, and will automatically attach the 
+and whether the client and the server use some common compression algorithm, and will automatically attach the
 appropriate headers.
 
 To determine the compression algorithm, the `Accept-Encoding` request header is inspected, respecting the
-quality factor as described in [MDN docs](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Encoding). 
+quality factor as described in [MDN docs](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Encoding).
 If no requested compression algorithm is supported by the server, we don't compress the response. If, on the other
 hand, multiple suitable algorithms are found and are requested with the same quality factor, we choose the first one
-defined in the `COMPRESS_ALGORITHM` option (see below). 
+defined in the `COMPRESS_ALGORITHM` option (see below).
 
 
 ## Installation
@@ -98,8 +98,8 @@ def view():
 
 ### Cache example
 
-Flask-Compress can be integrated with caching mechanisms to serve compressed responses directly from the cache. This can significantly reduce server load and response times.  
-Here is an example of how to configure Flask-Compress with caching using Flask-Caching.  
+Flask-Compress can be integrated with caching mechanisms to serve compressed responses directly from the cache. This can significantly reduce server load and response times.
+Here is an example of how to configure Flask-Compress with caching using Flask-Caching.
 The example demonstrates how to create a simple cache instance with a 1-hour timeout, and use it to cache compressed responses for incoming requests.
 
 ```python

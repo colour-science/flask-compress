@@ -1,0 +1,35 @@
+ci:
+  autoupdate_schedule: "quarterly"
+
+default_language_version:
+  python: "python3.12"
+
+exclude: "tests/templates/"
+
+repos:
+  - repo: "meta"
+    hooks:
+      - id: "check-hooks-apply"
+      - id: "check-useless-excludes"
+
+  - repo: "https://github.com/pre-commit/pre-commit-hooks"
+    rev: "v4.6.0"
+    hooks:
+      - id: "check-added-large-files"
+      - id: "check-merge-conflict"
+      - id: "check-yaml"
+      - id: "end-of-file-fixer"
+      - id: "mixed-line-ending"
+        args:
+          - "--fix=lf"
+      - id: "trailing-whitespace"
+
+  - repo: "https://github.com/python-jsonschema/check-jsonschema"
+    rev: "0.29.2"
+    hooks:
+      - id: "check-github-workflows"
+
+  - repo: "https://github.com/rhysd/actionlint"
+    rev: "v1.7.1"
+    hooks:
+      - id: "actionlint"

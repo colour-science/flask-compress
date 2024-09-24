@@ -5,3 +5,31 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools_scm]
 write_to = "flask_compress/_version.py"
 write_to_template = "__version__ = \"{version}\"\n"
+
+
+# coverage
+# --------
+
+[tool.coverage.run]
+relative_files = true
+parallel = true
+branch = true
+source = [
+    "flask_compress",
+    "tests",
+]
+
+[tool.coverage.paths]
+source = [
+    "flask_compress",
+    "*/site-packages",
+]
+
+[tool.coverage.report]
+skip_covered = true
+fail_under = 94
+
+
+[tool.coverage.html]
+directory = "htmlcov/"
+skip_covered = false

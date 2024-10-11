@@ -179,7 +179,7 @@ class Compress:
         response.direct_passthrough = False
 
         if self.cache is not None:
-            key = self.cache_key(request)
+            key = f"{chosen_algorithm};{self.cache_key(request)}"
             compressed_content = self.cache.get(key)
             if compressed_content is None:
                 compressed_content = self.compress(app, response, chosen_algorithm)

@@ -1,7 +1,10 @@
+import gzip
 import os
+import tempfile
 import unittest
 
 from flask import Flask, render_template
+from flask_caching import Cache
 
 from flask_compress import Compress
 
@@ -436,6 +439,62 @@ class StreamTests(unittest.TestCase):
             response = client.get("/stream/large", headers=headers)
             self.assertIn("Content-Encoding", response.headers)
             self.assertGreater(self.file_size, len(response.data))
+
+
+class CachingCompressionTests(unittest.TestCase):
+    def setUp(self):
+        self.view_calls = 0
+        self.tmpdir = tempfile.TemporaryDirectory()
+
+        self.app = Flask(__name__)
+        self.app.testing = True
+        cache = Cache(
+            config={
+                "CACHE_TYPE": "FileSystemCache",
+                "CACHE_DIR": self.tmpdir.name,
+                "CACHE_DEFAULT_TIMEOUT": 60 * 60,  # 1 hour cache timeout
+            }
+        )
+        cache.init_app(self.app)
+
+        def get_cache_key(request):
+            return request.url
+
+        compress = Compress()
+        compress.init_app(self.app)
+
+        compress.cache = cache
+        compress.cache_key = get_cache_key
+
+        @self.app.route("/route/")
+        def view():
+            self.view_calls += 1
+            return render_template("large.html")
+
+    def tearDown(self):
+        self.tmpdir.cleanup()
+
+    def test_compression(self):
+        # Here we are testing cache pollution where the same query is cached
+        # but with different compression algorithms. The cache key should include
+        # the compression algorithm so that the cache is not polluted.
+        client = self.app.test_client()
+
+        headers = [("Accept-Encoding", "deflate")]
+        response = client.get("/route/", headers=headers)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Content-Encoding", response.headers)
+        self.assertEqual(response.headers.get("Content-Encoding"), "deflate")
+        self.assertEqual(self.view_calls, 1)
+
+        headers = [("Accept-Encoding", "gzip")]
+        response = client.get("/route/", headers=headers)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Content-Encoding", response.headers)
+        self.assertEqual(response.headers.get("Content-Encoding"), "gzip")
+        self.assertEqual(self.view_calls, 2)
+        # If cache is polluted, this decompression fails as we get brotli
+        _ = gzip.decompress(response.data)
 
 
 if __name__ == "__main__":

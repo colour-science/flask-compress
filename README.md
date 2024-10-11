@@ -96,13 +96,18 @@ Here is an example of how to configure Flask-Compress with caching using Flask-C
 The example demonstrates how to create a simple cache instance with a 1-hour timeout, and use it to cache compressed responses for incoming requests.
 
 ```python
+from flask import Flask
+from flask_compress import Compress
+from flask_cache import Cache
+
 # Initializing flask app
 app = Flask(__name__)
 
-cache = Cache(app, config={
-    'CACHE_TYPE': 'simple',
+cache = Cache(config={
+    'CACHE_TYPE': 'SimpleCache',
     'CACHE_DEFAULT_TIMEOUT': 60*60  # 1 hour cache timeout
 })
+cache.init_app(app)
 
 # Define a function to return cache key for incoming requests
 def get_cache_key(request):

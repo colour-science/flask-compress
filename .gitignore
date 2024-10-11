@@ -13,7 +13,7 @@ venv*
 .env*
 # Coverage reports
 /cover/
-/.coverage
+/.coverage*
 /htmlcov
 # Ignoring profiling reports
 *.prof

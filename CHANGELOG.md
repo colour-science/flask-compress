@@ -2,9 +2,10 @@
 
 All notable changes to `flask-compress` will be documented in this file.
 
-## Unreleased
+## 1.16 (2024-10-13)
 
-- Drop support for Python 3.8 and lower.
+- Drop support for Python 3.8 and lower, see [#46](https://github.com/colour-science/flask-compress/pull/46)
+- Fix cache pollution caused by caching compression results for different compression algorithms, see [#53](https://github.com/colour-science/flask-compress/issues/53)
 
 ## 1.15 (2024-04-24)
 

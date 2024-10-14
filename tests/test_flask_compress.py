@@ -19,12 +19,32 @@ class DefaultsTest(unittest.TestCase):
     def test_mimetypes_default(self):
         """Tests COMPRESS_MIMETYPES default value is correctly set."""
         defaults = [
+            "text/html",
+            "text/css",
+            "text/plain",
+            "text/xml",
+            "text/x-component",
+            "text/javascript",  # Obsolete (RFC 9239)
+            "application/x-javascript",
             "application/javascript",
             "application/json",
-            "text/css",
-            "text/html",
-            "text/javascript",
-            "text/xml",
+            "application/manifest+json",
+            "application/vnd.api+json",
+            "application/xml",
+            "application/xhtml+xml",
+            "application/rss+xml",
+            "application/atom+xml",
+            "application/vnd.ms-fontobject",
+            "application/x-font-ttf",
+            "application/x-font-opentype",
+            "application/x-font-truetype",
+            "image/svg+xml",
+            "image/x-icon",
+            "image/vnd.microsoft.icon",
+            "font/ttf",
+            "font/eot",
+            "font/otf",
+            "font/opentype",
         ]
         self.assertEqual(self.app.config["COMPRESS_MIMETYPES"], defaults)
 

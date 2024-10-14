@@ -17,6 +17,73 @@ import zstandard
 from flask import after_this_request, current_app, request
 
 
+def _choose_algorithm(enabled_algorithms, accept_encoding):
+    """
+    Determine which compression algorithm we're going to use based on the
+    client request. The `Accept-Encoding` header may list one or more desired
+    algorithms, together with a "quality factor" for each one (higher quality
+    means the client prefers that algorithm more).
+
+    :param enabled_algorithms: List of supported compression algorithms
+    :param accept_encoding: Content of the `Accept-Encoding` header
+    :return: name of a compression algorithm (`gzip`, `deflate`, `br`, 'zstd')
+        or `None` if the client and server don't agree on any.
+    """
+    # A flag denoting that client requested using any (`*`) algorithm,
+    # in case a specific one is not supported by the server
+    fallback_to_any = False
+
+    # Map quality factors to requested algorithm names.
+    algos_by_quality = defaultdict(set)
+
+    # Set of supported algorithms
+    server_algos_set = set(enabled_algorithms)
+
+    for part in accept_encoding.lower().split(","):
+        part = part.strip()
+        if ";q=" in part:
+            # If the client associated a quality factor with an algorithm,
+            # try to parse it. We could do the matching using a regex, but
+            # the format is so simple that it would be overkill.
+            algo = part.split(";")[0].strip()
+            try:
+                quality = float(part.split("=")[1].strip())
+            except ValueError:
+                quality = 1.0
+        else:
+            # Otherwise, use the default quality
+            algo = part
+            quality = 1.0
+
+        if algo == "*":
+            if quality > 0:
+                fallback_to_any = True
+        elif algo == "identity":  # identity means 'no compression asked'
+            algos_by_quality[quality].add(None)
+        elif algo in server_algos_set:
+            algos_by_quality[quality].add(algo)
+
+    # Choose the algorithm with the highest quality factor that the server supports.
+    #
+    # If there are multiple equally good options,
+    # choose the first supported algorithm from server configuration.
+    #
+    # If the server doesn't support any algorithm that the client requested but
+    # there's a special wildcard algorithm request (`*`), choose the first supported
+    # algorithm.
+    for _, viable_algos in sorted(algos_by_quality.items(), reverse=True):
+        if len(viable_algos) == 1:
+            return viable_algos.pop()
+        elif len(viable_algos) > 1:
+            for server_algo in enabled_algorithms:
+                if server_algo in viable_algos:
+                    return server_algo
+
+    if fallback_to_any:
+        return enabled_algorithms[0]
+    return None
+
+
 class Compress:
     """
     The Compress object allows your application to use Flask-Compress.
@@ -107,71 +174,6 @@ class Compress:
         if app.config["COMPRESS_REGISTER"] and app.config["COMPRESS_MIMETYPES"]:
             app.after_request(self.after_request)
 
-    def _choose_compress_algorithm(self, accept_encoding_header):
-        """
-        Determine which compression algorithm we're going to use based on the
-        client request. The `Accept-Encoding` header may list one or more desired
-        algorithms, together with a "quality factor" for each one (higher quality
-        means the client prefers that algorithm more).
-
-        :param accept_encoding_header: Content of the `Accept-Encoding` header
-        :return: name of a compression algorithm (`gzip`, `deflate`, `br`, 'zstd')
-            or `None` if the client and server don't agree on any.
-        """
-        # A flag denoting that client requested using any (`*`) algorithm,
-        # in case a specific one is not supported by the server
-        fallback_to_any = False
-
-        # Map quality factors to requested algorithm names.
-        algos_by_quality = defaultdict(set)
-
-        # Set of supported algorithms
-        server_algos_set = set(self.enabled_algorithms)
-
-        for part in accept_encoding_header.lower().split(","):
-            part = part.strip()
-            if ";q=" in part:
-                # If the client associated a quality factor with an algorithm,
-                # try to parse it. We could do the matching using a regex, but
-                # the format is so simple that it would be overkill.
-                algo = part.split(";")[0].strip()
-                try:
-                    quality = float(part.split("=")[1].strip())
-                except ValueError:
-                    quality = 1.0
-            else:
-                # Otherwise, use the default quality
-                algo = part
-                quality = 1.0
-
-            if algo == "*":
-                if quality > 0:
-                    fallback_to_any = True
-            elif algo == "identity":  # identity means 'no compression asked'
-                algos_by_quality[quality].add(None)
-            elif algo in server_algos_set:
-                algos_by_quality[quality].add(algo)
-
-        # Choose the algorithm with the highest quality factor that the server supports.
-        #
-        # If there are multiple equally good options,
-        # choose the first supported algorithm from server configuration.
-        #
-        # If the server doesn't support any algorithm that the client requested but
-        # there's a special wildcard algorithm request (`*`), choose the first supported
-        # algorithm.
-        for _, viable_algos in sorted(algos_by_quality.items(), reverse=True):
-            if len(viable_algos) == 1:
-                return viable_algos.pop()
-            elif len(viable_algos) > 1:
-                for server_algo in self.enabled_algorithms:
-                    if server_algo in viable_algos:
-                        return server_algo
-
-        if fallback_to_any:
-            return self.enabled_algorithms[0]
-        return None
-
     def after_request(self, response):
         app = self.app or current_app
 
@@ -182,7 +184,7 @@ class Compress:
             response.headers["Vary"] = f"{vary}, Accept-Encoding"
 
         accept_encoding = request.headers.get("Accept-Encoding", "")
-        chosen_algorithm = self._choose_compress_algorithm(accept_encoding)
+        chosen_algorithm = _choose_algorithm(self.enabled_algorithms, accept_encoding)
 
         if (
             chosen_algorithm is None

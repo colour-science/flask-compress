@@ -7,6 +7,7 @@ from flask import Flask, render_template
 from flask_caching import Cache
 
 from flask_compress import Compress
+from flask_compress.flask_compress import _choose_algorithm
 
 
 class DefaultsTest(unittest.TestCase):
@@ -278,14 +279,16 @@ class CompressionAlgoTests(unittest.TestCase):
         accept_encoding = "gzip"
         self.app.config["COMPRESS_ALGORITHM"] = ["br", "gzip"]
         c = Compress(self.app)
-        self.assertEqual(c._choose_compress_algorithm(accept_encoding), "gzip")
+        chosen_algorithm = _choose_algorithm(c.enabled_algorithms, accept_encoding)
+        self.assertEqual(chosen_algorithm, "gzip")
 
     def test_one_algo_unsupported(self):
         """Tests requesting single unsupported compression algorithm"""
         accept_encoding = "some-alien-algorithm"
         self.app.config["COMPRESS_ALGORITHM"] = ["br", "gzip"]
         c = Compress(self.app)
-        self.assertIsNone(c._choose_compress_algorithm(accept_encoding))
+        chosen_algorithm = _choose_algorithm(c.enabled_algorithms, accept_encoding)
+        self.assertIsNone(chosen_algorithm)
 
     def test_multiple_algos_supported(self):
         """Tests requesting multiple supported compression algorithms"""
@@ -293,14 +296,16 @@ class CompressionAlgoTests(unittest.TestCase):
         self.app.config["COMPRESS_ALGORITHM"] = ["zstd", "br", "gzip"]
         c = Compress(self.app)
         # When the decision is tied, we expect the first server-configured algorithm
-        self.assertEqual(c._choose_compress_algorithm(accept_encoding), "zstd")
+        chosen_algorithm = _choose_algorithm(c.enabled_algorithms, accept_encoding)
+        self.assertEqual(chosen_algorithm, "zstd")
 
     def test_multiple_algos_unsupported(self):
         """Tests requesting multiple unsupported compression algorithms"""
         accept_encoding = "future-algo, alien-algo, forbidden-algo"
         self.app.config["COMPRESS_ALGORITHM"] = ["zstd", "br", "gzip"]
         c = Compress(self.app)
-        self.assertIsNone(c._choose_compress_algorithm(accept_encoding))
+        chosen_algorithm = _choose_algorithm(c.enabled_algorithms, accept_encoding)
+        self.assertIsNone(chosen_algorithm)
 
     def test_multiple_algos_with_wildcard(self):
         """Request multiple unsupported compression algorithms and a wildcard"""
@@ -308,14 +313,16 @@ class CompressionAlgoTests(unittest.TestCase):
         self.app.config["COMPRESS_ALGORITHM"] = ["zstd", "br", "gzip"]
         c = Compress(self.app)
         # We expect to see the first server-configured algorithm
-        self.assertEqual(c._choose_compress_algorithm(accept_encoding), "zstd")
+        chosen_algorithm = _choose_algorithm(c.enabled_algorithms, accept_encoding)
+        self.assertEqual(chosen_algorithm, "zstd")
 
     def test_multiple_algos_with_different_quality(self):
         """Request multiple supported compression algorithms with different q-factors"""
         accept_encoding = "zstd;q=0.8, br;q=0.9, gzip;q=0.5"
         self.app.config["COMPRESS_ALGORITHM"] = ["zstd", "br", "gzip"]
         c = Compress(self.app)
-        self.assertEqual(c._choose_compress_algorithm(accept_encoding), "br")
+        chosen_algorithm = _choose_algorithm(c.enabled_algorithms, accept_encoding)
+        self.assertEqual(chosen_algorithm, "br")
 
     def test_multiple_algos_with_equal_quality(self):
         """Request multiple supported compression algorithms with equal q-factors"""
@@ -323,42 +330,48 @@ class CompressionAlgoTests(unittest.TestCase):
         self.app.config["COMPRESS_ALGORITHM"] = ["gzip", "br", "zstd"]
         c = Compress(self.app)
         # We expect to see the first server-configured algorithm
-        self.assertEqual(c._choose_compress_algorithm(accept_encoding), "gzip")
+        chosen_algorithm = _choose_algorithm(c.enabled_algorithms, accept_encoding)
+        self.assertEqual(chosen_algorithm, "gzip")
 
     def test_default_quality_is_1(self):
         """Tests that when making mixed-quality requests, the default q-factor is 1.0"""
         accept_encoding = "deflate, br;q=0.999, gzip;q=0.5"
         self.app.config["COMPRESS_ALGORITHM"] = ["gzip", "br", "deflate"]
         c = Compress(self.app)
-        self.assertEqual(c._choose_compress_algorithm(accept_encoding), "deflate")
+        chosen_algorithm = _choose_algorithm(c.enabled_algorithms, accept_encoding)
+        self.assertEqual(chosen_algorithm, "deflate")
 
     def test_default_wildcard_quality_is_0(self):
         """Tests that a wildcard has a default q-factor of 0.0"""
         accept_encoding = "br;q=0.001, *"
         self.app.config["COMPRESS_ALGORITHM"] = ["gzip", "br", "deflate"]
         c = Compress(self.app)
-        self.assertEqual(c._choose_compress_algorithm(accept_encoding), "br")
+        chosen_algorithm = _choose_algorithm(c.enabled_algorithms, accept_encoding)
+        self.assertEqual(chosen_algorithm, "br")
 
     def test_wildcard_quality(self):
         """Tests that a wildcard with q=0 is discarded"""
         accept_encoding = "*;q=0"
         self.app.config["COMPRESS_ALGORITHM"] = ["gzip", "br", "deflate"]
         c = Compress(self.app)
-        self.assertEqual(c._choose_compress_algorithm(accept_encoding), None)
+        chosen_algorithm = _choose_algorithm(c.enabled_algorithms, accept_encoding)
+        self.assertIsNone(chosen_algorithm)
 
     def test_identity(self):
         """Tests that identity is understood"""
         accept_encoding = "identity;q=1, br;q=0.5, *;q=0"
         self.app.config["COMPRESS_ALGORITHM"] = ["gzip", "br", "deflate"]
         c = Compress(self.app)
-        self.assertEqual(c._choose_compress_algorithm(accept_encoding), None)
+        chosen_algorithm = _choose_algorithm(c.enabled_algorithms, accept_encoding)
+        self.assertIsNone(chosen_algorithm)
 
     def test_chrome_ranged_requests(self):
         """Tests that Chrome ranged requests behave as expected"""
         accept_encoding = "identity;q=1, *;q=0"
         self.app.config["COMPRESS_ALGORITHM"] = ["gzip", "br", "deflate"]
         c = Compress(self.app)
-        self.assertEqual(c._choose_compress_algorithm(accept_encoding), None)
+        chosen_algorithm = _choose_algorithm(c.enabled_algorithms, accept_encoding)
+        self.assertIsNone(chosen_algorithm)
 
     def test_content_encoding_is_correct(self):
         """Test that the `Content-Encoding` header matches the compression algorithm"""

@@ -96,6 +96,8 @@ class Compress:
         self.cache = backend() if backend else None
         self.cache_key = app.config["COMPRESS_CACHE_KEY"]
 
+        self.compress_mimetypes_set = set(app.config["COMPRESS_MIMETYPES"])
+
         algo = app.config["COMPRESS_ALGORITHM"]
         if isinstance(algo, str):
             self.enabled_algorithms = [i.strip() for i in algo.split(",")]
@@ -184,7 +186,7 @@ class Compress:
 
         if (
             chosen_algorithm is None
-            or response.mimetype not in app.config["COMPRESS_MIMETYPES"]
+            or response.mimetype not in self.compress_mimetypes_set
             or response.status_code < 200
             or response.status_code >= 300
             or (response.is_streamed and app.config["COMPRESS_STREAMS"] is False)

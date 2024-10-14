@@ -2,6 +2,12 @@
 
 All notable changes to `flask-compress` will be documented in this file.
 
+## 1.17 (unreleased)
+
+- Add support for Python 3.13 in tox and classifiers
+- Expand mimetype defaults, see [#57](https://github.com/colour-science/flask-compress/pull/57)
+- Minor performance improvements, cache the algorithm selection logic
+
 ## 1.16 (2024-10-13)
 
 - Drop support for Python 3.8 and lower, see [#46](https://github.com/colour-science/flask-compress/pull/46)

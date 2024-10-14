@@ -128,7 +128,7 @@ Within your Flask application's settings you can provide the following settings 
 
 | Option | Description | Default |
 | ------ | ----------- | ------- |
-| `COMPRESS_MIMETYPES` | Set the list of mimetypes to compress here. | `[`<br>`'application/javascript',`<br>`'application/json',`<br>`'text/css',`<br>`'text/html',`<br>`'text/javascript',`<br>`'text/xml',`<br>`]` |
+| `COMPRESS_MIMETYPES` | Set the list of mimetypes to compress here. | `[`<br>`'text/html',`<br>`'text/css',`<br>`'text/plain',`<br>`'text/xml',`<br>`'text/x-component',`<br>`'text/javascript',`<br>`'application/x-javascript',`<br>`'application/javascript',`<br>`'application/json',`<br>`'application/manifest+json',`<br>`'application/vnd.api+json',`<br>`'application/xml',`<br>`'application/xhtml+xml',`<br>`'application/rss+xml',`<br>`'application/atom+xml',`<br>`'application/vnd.ms-fontobject',`<br>`'application/x-font-ttf',`<br>`'application/x-font-opentype',`<br>`'application/x-font-truetype',`<br>`'image/svg+xml',`<br>`'image/x-icon',`<br>`'image/vnd.microsoft.icon',`<br>`'font/ttf',`<br>`'font/eot',`<br>`'font/otf',`<br>`'font/opentype',`<br>`]` |
 | `COMPRESS_LEVEL` | Specifies the gzip compression level. | `6` |
 | `COMPRESS_BR_LEVEL` | Specifies the Brotli compression level. Ranges from 0 to 11. | `4` |
 | `COMPRESS_BR_MODE` | For Brotli, the compression mode. The options are 0, 1, or 2. These correspond to "generic", "text" (for UTF-8 input), and "font" (for WOFF 2.0). | `0` |

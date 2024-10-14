@@ -5,6 +5,7 @@
 import functools
 import zlib
 from collections import defaultdict
+from functools import lru_cache
 from gzip import GzipFile
 from io import BytesIO
 
@@ -17,6 +18,7 @@ import zstandard
 from flask import after_this_request, current_app, request
 
 
+@lru_cache(maxsize=128)
 def _choose_algorithm(enabled_algorithms, accept_encoding):
     """
     Determine which compression algorithm we're going to use based on the
@@ -24,7 +26,7 @@ def _choose_algorithm(enabled_algorithms, accept_encoding):
     algorithms, together with a "quality factor" for each one (higher quality
     means the client prefers that algorithm more).
 
-    :param enabled_algorithms: List of supported compression algorithms
+    :param enabled_algorithms: Tuple of supported compression algorithms
     :param accept_encoding: Content of the `Accept-Encoding` header
     :return: name of a compression algorithm (`gzip`, `deflate`, `br`, 'zstd')
         or `None` if the client and server don't agree on any.
@@ -167,9 +169,9 @@ class Compress:
 
         algo = app.config["COMPRESS_ALGORITHM"]
         if isinstance(algo, str):
-            self.enabled_algorithms = [i.strip() for i in algo.split(",")]
+            self.enabled_algorithms = tuple(i.strip() for i in algo.split(","))
         else:
-            self.enabled_algorithms = list(algo)
+            self.enabled_algorithms = tuple(algo)
 
         if app.config["COMPRESS_REGISTER"] and app.config["COMPRESS_MIMETYPES"]:
             app.after_request(self.after_request)

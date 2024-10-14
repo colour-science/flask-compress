@@ -260,19 +260,19 @@ class CompressionAlgoTests(unittest.TestCase):
         This is a backwards-compatibility test."""
         self.app.config["COMPRESS_ALGORITHM"] = "gzip"
         c = Compress(self.app)
-        self.assertListEqual(c.enabled_algorithms, ["gzip"])
+        self.assertTupleEqual(c.enabled_algorithms, ("gzip",))
 
     def test_setting_compress_algorithm_cs_string(self):
         """Test that `COMPRESS_ALGORITHM` can be a comma-separated string"""
         self.app.config["COMPRESS_ALGORITHM"] = "gzip, br, zstd"
         c = Compress(self.app)
-        self.assertListEqual(c.enabled_algorithms, ["gzip", "br", "zstd"])
+        self.assertTupleEqual(c.enabled_algorithms, ("gzip", "br", "zstd"))
 
     def test_setting_compress_algorithm_list(self):
         """Test that `COMPRESS_ALGORITHM` can be a list of strings"""
         self.app.config["COMPRESS_ALGORITHM"] = ["gzip", "br", "deflate"]
         c = Compress(self.app)
-        self.assertListEqual(c.enabled_algorithms, ["gzip", "br", "deflate"])
+        self.assertTupleEqual(c.enabled_algorithms, ("gzip", "br", "deflate"))
 
     def test_one_algo_supported(self):
         """Tests requesting a single supported compression algorithm"""

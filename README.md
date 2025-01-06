@@ -92,7 +92,7 @@ def view():
 ### Cache example
 
 Flask-Compress can be integrated with caching mechanisms to serve compressed responses directly from the cache. This can significantly reduce server load and response times.
-Here is an example of how to configure Flask-Compress with caching using Flask-Caching.
+Here is an example of how to configure Flask-Compress with caching using [Flask-Caching](https://pypi.org/project/Flask-Caching/).
 The example demonstrates how to create a simple cache instance with a 1-hour timeout, and use it to cache compressed responses for incoming requests.
 
 ```python
@@ -121,6 +121,8 @@ compress.init_app(app)
 compress.cache = cache
 compress.cache_key = get_cache_key
 ```
+
+If you do not want to pull an external dependency, you can use a simple in-memory cache using `compress.cache = flask_compress.DictCache()`.
 
 ## Options
 

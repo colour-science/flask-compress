@@ -6,7 +6,7 @@ import unittest
 from flask import Flask, render_template
 from flask_caching import Cache
 
-from flask_compress import Compress
+from flask_compress import Compress, DictCache
 from flask_compress.flask_compress import _choose_algorithm
 
 
@@ -476,6 +476,7 @@ class StreamTests(unittest.TestCase):
 
 class CachingCompressionTests(unittest.TestCase):
     def setUp(self):
+        # We keep track of the number of times the view is called
         self.view_calls = 0
         self.tmpdir = tempfile.TemporaryDirectory()
 
@@ -528,6 +529,45 @@ class CachingCompressionTests(unittest.TestCase):
         self.assertEqual(self.view_calls, 2)
         # If cache is polluted, this decompression fails as we get brotli
         _ = gzip.decompress(response.data)
+
+
+class DictCacheTests(unittest.TestCase):
+    def setUp(self):
+        # We keep track of the number of times the cache key function is called
+        self.cache_key_calls = 0
+        self.app = Flask(__name__)
+        self.app.testing = True
+
+        def get_cache_key(request):
+            self.cache_key_calls += 1
+            return request.url
+
+        compress = Compress()
+        compress.init_app(self.app)
+
+        compress.cache = DictCache()
+        compress.cache_key = get_cache_key
+
+        @self.app.route("/route/")
+        def view():
+            return render_template("large.html")
+
+    def test_compression(self):
+        client = self.app.test_client()
+
+        headers = [("Accept-Encoding", "deflate")]
+        response = client.get("/route/", headers=headers)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Content-Encoding", response.headers)
+        self.assertEqual(response.headers.get("Content-Encoding"), "deflate")
+        self.assertEqual(self.cache_key_calls, 1)
+
+        headers = [("Accept-Encoding", "deflate")]
+        response = client.get("/route/", headers=headers)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Content-Encoding", response.headers)
+        self.assertEqual(response.headers.get("Content-Encoding"), "deflate")
+        self.assertEqual(self.cache_key_calls, 2)
 
 
 if __name__ == "__main__":

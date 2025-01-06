@@ -18,6 +18,18 @@ import zstandard
 from flask import after_this_request, current_app, request
 
 
+class DictCache:
+
+    def __init__(self):
+        self.data = {}
+
+    def get(self, key):
+        return self.data.get(key)
+
+    def set(self, key, value):
+        self.data[key] = value
+
+
 @lru_cache(maxsize=128)
 def _choose_algorithm(enabled_algorithms, accept_encoding):
     """

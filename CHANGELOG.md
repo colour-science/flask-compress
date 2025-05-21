@@ -2,6 +2,11 @@
 
 All notable changes to `flask-compress` will be documented in this file.
 
+## Unreleased changes
+
+- Support, and test against, Python 3.14
+- Migrate from `zstandard` to `pyzstd`, which is now included in the Python 3.14 standard library
+
 ## 1.17 (2024-10-14)
 
 - Add support for Python 3.13 in tox and classifiers

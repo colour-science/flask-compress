@@ -3,19 +3,17 @@
 # License: The MIT License (MIT)
 
 import functools
-import zlib
 from collections import defaultdict
 from functools import lru_cache
-from gzip import GzipFile
-from io import BytesIO
 
 try:
     import brotlicffi as brotli
 except ImportError:
     import brotli
 
-import zstandard
 from flask import after_this_request, current_app, request
+
+from .compat import compression
 
 
 class DictCache:
@@ -254,16 +252,11 @@ class Compress:
 
     def compress(self, app, response, algorithm):
         if algorithm == "gzip":
-            gzip_buffer = BytesIO()
-            with GzipFile(
-                mode="wb",
-                compresslevel=app.config["COMPRESS_LEVEL"],
-                fileobj=gzip_buffer,
-            ) as gzip_file:
-                gzip_file.write(response.get_data())
-            return gzip_buffer.getvalue()
+            return compression.gzip.compress(
+                response.get_data(), app.config["COMPRESS_LEVEL"]
+            )
         elif algorithm == "deflate":
-            return zlib.compress(
+            return compression.zlib.compress(
                 response.get_data(), app.config["COMPRESS_DEFLATE_LEVEL"]
             )
         elif algorithm == "br":
@@ -275,6 +268,6 @@ class Compress:
                 lgblock=app.config["COMPRESS_BR_BLOCK"],
             )
         elif algorithm == "zstd":
-            return zstandard.ZstdCompressor(app.config["COMPRESS_ZSTD_LEVEL"]).compress(
-                response.get_data()
+            return compression.zstd.compress(
+                response.get_data(), app.config["COMPRESS_ZSTD_LEVEL"]
             )

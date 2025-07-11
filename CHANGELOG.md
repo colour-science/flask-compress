@@ -4,8 +4,13 @@ All notable changes to `flask-compress` will be documented in this file.
 
 ## Unreleased changes
 
-- Support, and test against, Python 3.14
-- Migrate from `zstandard` to `pyzstd`, which is now included in the Python 3.14 standard library
+None so far.
+
+## 1.18 (2025-07-11)
+
+- Support, and test against, Python 3.14, see [#61](https://github.com/colour-science/flask-compress/pull/61) by @kurtmckee
+- Migrate from `zstandard` to `pyzstd`, which is now included in the Python 3.14 standard library, also part of [#61](https://github.com/colour-science/flask-compress/pull/61)
+- Restore `flask_compress.DictCache()` that is needed to configure Flask-Compress with caching, without relying on [Flask-Caching](https://pypi.org/project/Flask-Caching/)
 
 ## 1.17 (2024-10-14)
 

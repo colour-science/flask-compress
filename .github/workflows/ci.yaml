@@ -31,13 +31,13 @@ jobs:
 
     name: ${{ matrix.os }} - ${{ matrix.python-version }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Get history and tags for SCM versioning to work
       run: |
         git fetch --prune --unshallow
         git fetch --depth=1 origin +refs/tags/*:refs/tags/*
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
         allow-prereleases: true
@@ -52,12 +52,12 @@ jobs:
     needs: [test]
     name: Build Python packages
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Get history and tags for SCM versioning to work
       run: |
         git fetch --prune --unshallow
         git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v6
       with:
         python-version: "3.12"
     - name: Install dependencies
@@ -76,12 +76,12 @@ jobs:
     needs: [dist]
     name: Twine check
     steps:
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v6
       with:
         python-version: "3.12"
     - name: Install dependencies
       run: pip install twine
-    - uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v5
       with:
         name: dist
         path: dist
@@ -93,7 +93,7 @@ jobs:
     needs: [dist_check]
     name: PyPI upload
     steps:
-    - uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v5
       with:
         name: dist
         path: dist

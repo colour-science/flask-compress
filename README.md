@@ -144,3 +144,4 @@ Within your Flask application's settings you can provide the following settings 
 | `COMPRESS_REGISTER` | Specifies if compression should be automatically registered. | `True` |
 | `COMPRESS_ALGORITHM` | Supported compression algorithms. | `['zstd', 'br', 'gzip', 'deflate']` |
 | `COMPRESS_STREAMS` | Compress content streams. | `True` |
+| `COMPRESS_EVALUATE_CONDITIONAL_REQUEST` | Compress evaluates conditional requests. | `False` |

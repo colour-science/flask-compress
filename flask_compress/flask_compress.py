@@ -165,6 +165,7 @@ class Compress:
             ("COMPRESS_CACHE_BACKEND", None),
             ("COMPRESS_REGISTER", True),
             ("COMPRESS_STREAMS", True),
+            ("COMPRESS_EVALUATE_CONDITIONAL_REQUEST", False),
             ("COMPRESS_ALGORITHM", ["zstd", "br", "gzip", "deflate"]),
         ]
 
@@ -230,9 +231,17 @@ class Compress:
 
         # "123456789"   => "123456789:gzip"   - A strong ETag validator
         # W/"123456789" => W/"123456789:gzip" - A weak ETag validator
-        etag = response.headers.get("ETag")
-        if etag:
-            response.headers["ETag"] = f'{etag[:-1]}:{chosen_algorithm}"'
+        etag, is_weak = response.get_etag()
+
+        if etag and not is_weak:
+            response.set_etag(f"{etag}:{chosen_algorithm}", weak=is_weak)
+
+        if (
+            app.config["COMPRESS_EVALUATE_CONDITIONAL_REQUEST"]
+            and request.method in ("GET", "HEAD")
+            and (not response.is_streamed or app.config["COMPRESS_STREAMS"])
+        ):
+            response.make_conditional(request)
 
         return response
 

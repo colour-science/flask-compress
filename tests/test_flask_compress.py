@@ -3,7 +3,7 @@ import os
 import tempfile
 import unittest
 
-from flask import Flask, render_template
+from flask import Flask, make_response, render_template, request
 from flask_caching import Cache
 
 from flask_compress import Compress, DictCache
@@ -90,6 +90,13 @@ class DefaultsTest(unittest.TestCase):
     def test_quality_level_default_zstd(self):
         """Tests COMPRESS_ZSTD_LEVEL default value is correctly set."""
         self.assertEqual(self.app.config["COMPRESS_ZSTD_LEVEL"], 3)
+
+    def test_evaluate_conditional_request(self):
+        """Tests COMPRESS_EVALUATE_CONDITIONAL_REQUEST default value
+        is correctly set."""
+        self.assertEqual(
+            self.app.config["COMPRESS_EVALUATE_CONDITIONAL_REQUEST"], False
+        )
 
 
 class InitTests(unittest.TestCase):
@@ -568,6 +575,136 @@ class DictCacheTests(unittest.TestCase):
         self.assertIn("Content-Encoding", response.headers)
         self.assertEqual(response.headers.get("Content-Encoding"), "deflate")
         self.assertEqual(self.cache_key_calls, 2)
+
+
+class ETagTests(unittest.TestCase):
+    def setUp(self):
+        self.app = Flask(__name__)
+        self.app.testing = True
+        self.app.config["COMPRESS_ALGORITHM"] = ["gzip"]
+        self.app.config["COMPRESS_MIN_SIZE"] = 1
+
+        Compress(self.app)
+
+        @self.app.route("/strong/")
+        def strong():
+            rv = make_response(render_template("large.html"))
+            rv.set_etag("abc123", weak=False)
+            return rv.make_conditional(request)
+
+        @self.app.route("/strong-compress-conditional/")
+        def strong_compress_conditional():
+            rv = make_response(render_template("large.html"))
+            rv.set_etag("abc123", weak=False)
+            return rv
+
+        @self.app.route("/weak/")
+        def weak():
+            rv = make_response(render_template("large.html"))
+            rv.set_etag("abc123", weak=True)
+            return rv.make_conditional(request)
+
+        @self.app.route("/weak-compress-conditional/")
+        def weak_compress_conditional():
+            rv = make_response(render_template("large.html"))
+            rv.set_etag("abc123", weak=True)
+            return rv
+
+    def test_strong_etag_is_mutated_with_suffix_and_remains_strong(self):
+        client = self.app.test_client()
+        r = client.get("/strong/", headers=[("Accept-Encoding", "gzip")])
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.headers.get("Content-Encoding"), "gzip")
+
+        tag, is_weak = r.get_etag()
+        self.assertFalse(is_weak)
+        self.assertEqual(tag, "abc123:gzip")
+        self.assertEqual(int(r.headers["Content-Length"]), len(r.data))
+
+    def test_weak_etag_is_preserved(self):
+        client = self.app.test_client()
+        r = client.get("/weak/", headers=[("Accept-Encoding", "gzip")])
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.headers.get("Content-Encoding"), "gzip")
+
+        tag, is_weak = r.get_etag()
+        self.assertTrue(is_weak)
+        # No :gzip suffix when flag is False
+        self.assertEqual(tag, "abc123")
+
+    def test_conditional_get_uses_strong_compressed_representation(self):
+        client = self.app.test_client()
+        r1 = client.get("/strong/", headers=[("Accept-Encoding", "gzip")])
+
+        r2 = client.get(
+            "/strong/",
+            headers=[
+                ("Accept-Encoding", "gzip"),
+                ("If-None-Match", r1.headers["ETag"]),
+            ],
+        )
+        # This is the current behavior that breaks make_conditional
+        # strong etags due rewrite at after_request
+        # We would expect a 304 but it does not because of etag mismatch
+        self.assertEqual(r2.status_code, 200)
+
+    def test_conditional_get_uses_weak_compressed_representation(self):
+        client = self.app.test_client()
+        r1 = client.get("/weak/", headers=[("Accept-Encoding", "gzip")])
+        etag_header = r1.headers["ETag"]
+
+        r2 = client.get(
+            "/weak/",
+            headers=[("Accept-Encoding", "gzip"), ("If-None-Match", etag_header)],
+        )
+        # This is the new behaviour we would expect by not mutating
+        # the weak etags at after_request
+        self.assertEqual(r2.status_code, 304)
+        self.assertEqual(r2.headers.get("ETag"), etag_header)
+        self.assertNotIn("Content-Encoding", r2.headers)
+        self.assertEqual(len(r2.get_data()), 0)
+
+    def test_conditional_get_uses_strong_compressed_representation_evaluate_conditional(
+        self,
+    ):
+        self.app.config["COMPRESS_EVALUATE_CONDITIONAL_REQUEST"] = True
+        client = self.app.test_client()
+        r1 = client.get(
+            "/strong-compress-conditional/", headers=[("Accept-Encoding", "gzip")]
+        )
+        etag_header = r1.headers["ETag"]
+
+        r2 = client.get(
+            "/strong-compress-conditional/",
+            headers=[("Accept-Encoding", "gzip"), ("If-None-Match", etag_header)],
+        )
+        # This is the new behaviour we would expect after evaluating
+        # flask make_conditional at after_request
+        self.assertEqual(r2.status_code, 304)
+        self.assertEqual(r2.headers.get("ETag"), etag_header)
+        self.assertNotIn("Content-Encoding", r2.headers)
+        self.assertEqual(len(r2.get_data()), 0)
+
+    def test_conditional_get_uses_weak_compressed_representation_evaluate_conditional(
+        self,
+    ):
+        self.app.config["COMPRESS_EVALUATE_CONDITIONAL_REQUEST"] = True
+        client = self.app.test_client()
+        r1 = client.get(
+            "/weak-compress-conditional/", headers=[("Accept-Encoding", "gzip")]
+        )
+        etag_header = r1.headers["ETag"]
+
+        r2 = client.get(
+            "/weak-compress-conditional/",
+            headers=[("Accept-Encoding", "gzip"), ("If-None-Match", etag_header)],
+        )
+        # This is the new behaviour we would expect after evaluating
+        # flask make_conditional at after_request
+        self.assertEqual(r2.status_code, 304)
+        self.assertEqual(r2.headers.get("ETag"), etag_header)
+        self.assertNotIn("Content-Encoding", r2.headers)
+        self.assertEqual(len(r2.get_data()), 0)
 
 
 if __name__ == "__main__":

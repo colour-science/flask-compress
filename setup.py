@@ -23,7 +23,7 @@ setup(
         "flask",
         "brotli; platform_python_implementation!='PyPy'",
         "brotlicffi; platform_python_implementation=='PyPy'",
-        "pyzstd; python_version<'3.14'",
+        "backports.zstd; python_version<'3.14'",
     ],
     setup_requires=[
         "setuptools_scm",

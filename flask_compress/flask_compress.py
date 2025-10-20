@@ -165,7 +165,7 @@ class Compress:
             ("COMPRESS_CACHE_BACKEND", None),
             ("COMPRESS_REGISTER", True),
             ("COMPRESS_STREAMS", True),
-            ("COMPRESS_EVALUATE_CONDITIONAL_REQUEST", False),
+            ("COMPRESS_EVALUATE_CONDITIONAL_REQUEST", True),
             ("COMPRESS_ALGORITHM", ["zstd", "br", "gzip", "deflate"]),
         ]
 

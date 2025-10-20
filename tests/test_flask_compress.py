@@ -95,7 +95,7 @@ class DefaultsTest(unittest.TestCase):
         """Tests COMPRESS_EVALUATE_CONDITIONAL_REQUEST default value
         is correctly set."""
         self.assertEqual(
-            self.app.config["COMPRESS_EVALUATE_CONDITIONAL_REQUEST"], False
+            self.app.config["COMPRESS_EVALUATE_CONDITIONAL_REQUEST"], True
         )
 
 
@@ -633,6 +633,7 @@ class ETagTests(unittest.TestCase):
         self.assertEqual(tag, "abc123")
 
     def test_conditional_get_uses_strong_compressed_representation(self):
+        self.app.config["COMPRESS_EVALUATE_CONDITIONAL_REQUEST"] = False
         client = self.app.test_client()
         r1 = client.get("/strong/", headers=[("Accept-Encoding", "gzip")])
 
@@ -643,12 +644,13 @@ class ETagTests(unittest.TestCase):
                 ("If-None-Match", r1.headers["ETag"]),
             ],
         )
-        # This is the current behavior that breaks make_conditional
+        # This is the old behavior that broke make_conditional
         # strong etags due rewrite at after_request
         # We would expect a 304 but it does not because of etag mismatch
         self.assertEqual(r2.status_code, 200)
 
     def test_conditional_get_uses_weak_compressed_representation(self):
+        self.app.config["COMPRESS_EVALUATE_CONDITIONAL_REQUEST"] = False
         client = self.app.test_client()
         r1 = client.get("/weak/", headers=[("Accept-Encoding", "gzip")])
         etag_header = r1.headers["ETag"]
@@ -657,7 +659,7 @@ class ETagTests(unittest.TestCase):
             "/weak/",
             headers=[("Accept-Encoding", "gzip"), ("If-None-Match", etag_header)],
         )
-        # This is the new behaviour we would expect by not mutating
+        # This is the behaviour we expect by not mutating
         # the weak etags at after_request
         self.assertEqual(r2.status_code, 304)
         self.assertEqual(r2.headers.get("ETag"), etag_header)
@@ -667,7 +669,6 @@ class ETagTests(unittest.TestCase):
     def test_conditional_get_uses_strong_compressed_representation_evaluate_conditional(
         self,
     ):
-        self.app.config["COMPRESS_EVALUATE_CONDITIONAL_REQUEST"] = True
         client = self.app.test_client()
         r1 = client.get(
             "/strong-compress-conditional/", headers=[("Accept-Encoding", "gzip")]
@@ -678,7 +679,7 @@ class ETagTests(unittest.TestCase):
             "/strong-compress-conditional/",
             headers=[("Accept-Encoding", "gzip"), ("If-None-Match", etag_header)],
         )
-        # This is the new behaviour we would expect after evaluating
+        # This is the behaviour we would expect after evaluating
         # flask make_conditional at after_request
         self.assertEqual(r2.status_code, 304)
         self.assertEqual(r2.headers.get("ETag"), etag_header)
@@ -688,7 +689,6 @@ class ETagTests(unittest.TestCase):
     def test_conditional_get_uses_weak_compressed_representation_evaluate_conditional(
         self,
     ):
-        self.app.config["COMPRESS_EVALUATE_CONDITIONAL_REQUEST"] = True
         client = self.app.test_client()
         r1 = client.get(
             "/weak-compress-conditional/", headers=[("Accept-Encoding", "gzip")]
@@ -699,7 +699,7 @@ class ETagTests(unittest.TestCase):
             "/weak-compress-conditional/",
             headers=[("Accept-Encoding", "gzip"), ("If-None-Match", etag_header)],
         )
-        # This is the new behaviour we would expect after evaluating
+        # This is the behaviour we would expect after evaluating
         # flask make_conditional at after_request
         self.assertEqual(r2.status_code, 304)
         self.assertEqual(r2.headers.get("ETag"), etag_header)

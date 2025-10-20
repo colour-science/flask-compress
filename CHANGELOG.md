@@ -2,12 +2,16 @@
 
 All notable changes to `flask-compress` will be documented in this file.
 
+## 1.20 (2025-10-20)
+
+- the new `COMPRESS_EVALUATE_CONDITIONAL_REQUEST` config option is now `True` by default
+
 ## 1.19 (2025-10-20)
 
 - Use `backports.zstd` instead of `pyzstd`, [#63](https://github.com/colour-science/flask-compress/pull/63) by @alexprengere
 - Add new behaviours to improve Etag compatibility,  [#67](https://github.com/colour-science/flask-compress/pull/67), by @jlopex
     - weak etags are no longer modified by flask-compress
-    - add new `COMPRESS_EVALUATE_CONDITIONAL_REQUEST` config option to call `response.make_conditional(request)` after compression, this ensures that 304 Not Modified responses are correctly generated when the client sends conditional requests with `If-None-Match`
+    - add new `COMPRESS_EVALUATE_CONDITIONAL_REQUEST` config option to call `response.make_conditional(request)` after compression, this ensures that 304 Not Modified responses are correctly generated when the client sends conditional requests with `If-None-Match` (defaults to `False`)
 
 ## 1.18 (2025-07-11)
 

@@ -94,9 +94,7 @@ class DefaultsTest(unittest.TestCase):
     def test_evaluate_conditional_request(self):
         """Tests COMPRESS_EVALUATE_CONDITIONAL_REQUEST default value
         is correctly set."""
-        self.assertEqual(
-            self.app.config["COMPRESS_EVALUATE_CONDITIONAL_REQUEST"], True
-        )
+        self.assertEqual(self.app.config["COMPRESS_EVALUATE_CONDITIONAL_REQUEST"], True)
 
 
 class InitTests(unittest.TestCase):

@@ -231,17 +231,19 @@ class Compress:
 
         if streaming:
             chunks = response.iter_encoded()
-            response.response = self.compress_chunks(app, chunks, chosen_algorithm)
+            response.response = _compress_chunks(app, chunks, chosen_algorithm)
             response.headers.pop("Content-Length", None)
         else:
             if self.cache is not None:
                 key = f"{chosen_algorithm};{self.cache_key(request)}"
                 compressed_content = self.cache.get(key)
                 if compressed_content is None:
-                    compressed_content = self.compress(app, response, chosen_algorithm)
+                    data = response.get_data()
+                    compressed_content = _compress_data(app, data, chosen_algorithm)
                 self.cache.set(key, compressed_content)
             else:
-                compressed_content = self.compress(app, response, chosen_algorithm)
+                data = response.get_data()
+                compressed_content = _compress_data(app, data, chosen_algorithm)
 
             response.set_data(compressed_content)
             response.headers["Content-Length"] = response.content_length
@@ -273,64 +275,65 @@ class Compress:
 
         return decorator
 
-    def compress(self, app, response, algorithm):
-        if algorithm == "gzip":
-            return compression.gzip.compress(
-                response.get_data(), app.config["COMPRESS_LEVEL"]
-            )
-        elif algorithm == "deflate":
-            return compression.zlib.compress(
-                response.get_data(), app.config["COMPRESS_DEFLATE_LEVEL"]
-            )
-        elif algorithm == "br":
-            return brotli.compress(
-                response.get_data(),
-                mode=app.config["COMPRESS_BR_MODE"],
-                quality=app.config["COMPRESS_BR_LEVEL"],
-                lgwin=app.config["COMPRESS_BR_WINDOW"],
-                lgblock=app.config["COMPRESS_BR_BLOCK"],
-            )
-        elif algorithm == "zstd":
-            return compression.zstd.compress(
-                response.get_data(), app.config["COMPRESS_ZSTD_LEVEL"]
-            )
-        else:
-            raise ValueError(f"Unknown compression algorithm: {algorithm}")
 
-    def compress_chunks(self, app, chunks, algorithm):
-        if algorithm == "deflate":
-            compressor = compression.zlib.compressobj(
-                level=app.config["COMPRESS_DEFLATE_LEVEL"]
-            )
-            for data in chunks:
-                out = compressor.compress(data)
-                if out:
-                    yield out
-            out = compressor.flush()
+def _compress_data(app, data, algorithm):
+    if algorithm == "zstd":
+        return compression.zstd.compress(data, app.config["COMPRESS_ZSTD_LEVEL"])
+
+    if algorithm == "gzip":
+        return compression.gzip.compress(data, app.config["COMPRESS_LEVEL"])
+
+    if algorithm == "deflate":
+        return compression.zlib.compress(data, app.config["COMPRESS_DEFLATE_LEVEL"])
+
+    if algorithm == "br":
+        return brotli.compress(
+            data,
+            mode=app.config["COMPRESS_BR_MODE"],
+            quality=app.config["COMPRESS_BR_LEVEL"],
+            lgwin=app.config["COMPRESS_BR_WINDOW"],
+            lgblock=app.config["COMPRESS_BR_BLOCK"],
+        )
+
+    raise ValueError(f"Unknown compression algorithm: {algorithm}")
+
+
+def _compress_chunks(app, chunks, algorithm):
+    if algorithm == "zstd":
+        level = app.config["COMPRESS_ZSTD_LEVEL"]
+        compressor = compression.zstd.ZstdCompressor(level=level)
+        for data in chunks:
+            out = compressor.compress(data)
             if out:
                 yield out
+        out = compressor.flush()
+        if out:
+            yield out
 
-        elif algorithm == "br":
-            compressor = brotli.Compressor(
-                mode=app.config["COMPRESS_BR_MODE"],
-                quality=app.config["COMPRESS_BR_LEVEL"],
-                lgwin=app.config["COMPRESS_BR_WINDOW"],
-                lgblock=app.config["COMPRESS_BR_BLOCK"],
-            )
-            for data in chunks:
-                out = compressor.process(data)
-                if out:
-                    yield out
-            yield compressor.finish()
+    elif algorithm == "deflate":
+        level = app.config["COMPRESS_DEFLATE_LEVEL"]
+        compressor = compression.zlib.compressobj(level=level)
+        for data in chunks:
+            out = compressor.compress(data)
+            if out:
+                yield out
+        out = compressor.flush()
+        if out:
+            yield out
 
-        elif algorithm == "zstd":
-            compressor = compression.zstd.ZstdCompressor(
-                level=app.config["COMPRESS_ZSTD_LEVEL"]
-            )
-            for data in chunks:
-                out = compressor.compress(data)
-                if out:
-                    yield out
-            yield compressor.flush()
-        else:
-            raise ValueError(f"Unsupported streaming algorithm: {algorithm}")
+    elif algorithm == "br":
+        compressor = brotli.Compressor(
+            mode=app.config["COMPRESS_BR_MODE"],
+            quality=app.config["COMPRESS_BR_LEVEL"],
+            lgwin=app.config["COMPRESS_BR_WINDOW"],
+            lgblock=app.config["COMPRESS_BR_BLOCK"],
+        )
+        for data in chunks:
+            out = compressor.process(data)
+            if out:
+                yield out
+        out = compressor.finish()
+        if out:
+            yield out
+    else:
+        raise ValueError(f"Unsupported streaming algorithm: {algorithm}")

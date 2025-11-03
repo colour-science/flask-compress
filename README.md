@@ -143,5 +143,6 @@ Within your Flask application's settings you can provide the following settings 
 | `COMPRESS_CACHE_BACKEND` | Specified the backend for storing the cached response data. | `None` |
 | `COMPRESS_REGISTER` | Specifies if compression should be automatically registered. | `True` |
 | `COMPRESS_ALGORITHM` | Supported compression algorithms. | `['zstd', 'br', 'gzip', 'deflate']` |
-| `COMPRESS_STREAMS` | Compress content streams. | `True` |
+| `COMPRESS_ALGORITHM_STREAMING` | Supported compression algorithms for streaming. | `['zstd', 'br', 'deflate']` |
+| `COMPRESS_STREAMS` | Compress streaming responses. | `True` |
 | `COMPRESS_EVALUATE_CONDITIONAL_REQUEST` | Compress evaluates conditional requests. | `True` |

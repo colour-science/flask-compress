@@ -29,14 +29,14 @@ class DictCache:
 
 
 @lru_cache(maxsize=128)
-def _choose_algorithm(enabled_algorithms, accept_encoding):
+def _choose_algorithm(algorithms, accept_encoding):
     """
     Determine which compression algorithm we're going to use based on the
     client request. The `Accept-Encoding` header may list one or more desired
     algorithms, together with a "quality factor" for each one (higher quality
     means the client prefers that algorithm more).
 
-    :param enabled_algorithms: Tuple of supported compression algorithms
+    :param algorithms: Tuple of supported compression algorithms
     :param accept_encoding: Content of the `Accept-Encoding` header
     :return: name of a compression algorithm (`gzip`, `deflate`, `br`, 'zstd')
         or `None` if the client and server don't agree on any.
@@ -49,7 +49,7 @@ def _choose_algorithm(enabled_algorithms, accept_encoding):
     algos_by_quality = defaultdict(set)
 
     # Set of supported algorithms
-    server_algos_set = set(enabled_algorithms)
+    server_algos_set = set(algorithms)
 
     for part in accept_encoding.lower().split(","):
         part = part.strip()
@@ -87,13 +87,27 @@ def _choose_algorithm(enabled_algorithms, accept_encoding):
         if len(viable_algos) == 1:
             return viable_algos.pop()
         elif len(viable_algos) > 1:
-            for server_algo in enabled_algorithms:
+            for server_algo in algorithms:
                 if server_algo in viable_algos:
                     return server_algo
 
     if fallback_to_any:
-        return enabled_algorithms[0]
+        return algorithms[0]
     return None
+
+
+def _format(algo):
+    """Format the algorithm configuration into a tuple of strings.
+
+    >>> _format("gzip, deflate, br")
+    ('gzip', 'deflate', 'br')
+    >>> _format(["gzip", "deflate", "br"])
+    ('gzip', 'deflate', 'br')
+    """
+    if isinstance(algo, str):
+        return tuple(i.strip() for i in algo.split(","))
+    else:
+        return tuple(algo)
 
 
 class Compress:
@@ -167,6 +181,7 @@ class Compress:
             ("COMPRESS_STREAMS", True),
             ("COMPRESS_EVALUATE_CONDITIONAL_REQUEST", True),
             ("COMPRESS_ALGORITHM", ["zstd", "br", "gzip", "deflate"]),
+            ("COMPRESS_ALGORITHM_STREAMING", ["zstd", "br", "deflate"]),  # no gzip
         ]
 
         for k, v in defaults:
@@ -177,12 +192,8 @@ class Compress:
         self.cache_key = app.config["COMPRESS_CACHE_KEY"]
 
         self.compress_mimetypes_set = set(app.config["COMPRESS_MIMETYPES"])
-
-        algo = app.config["COMPRESS_ALGORITHM"]
-        if isinstance(algo, str):
-            self.enabled_algorithms = tuple(i.strip() for i in algo.split(","))
-        else:
-            self.enabled_algorithms = tuple(algo)
+        self.enabled_algorithms = _format(app.config["COMPRESS_ALGORITHM"])
+        self.streaming_algorithms = _format(app.config["COMPRESS_ALGORITHM_STREAMING"])
 
         if app.config["COMPRESS_REGISTER"] and app.config["COMPRESS_MIMETYPES"]:
             app.after_request(self.after_request)
@@ -197,14 +208,16 @@ class Compress:
             response.headers["Vary"] = f"{vary}, Accept-Encoding"
 
         accept_encoding = request.headers.get("Accept-Encoding", "")
-        chosen_algorithm = _choose_algorithm(self.enabled_algorithms, accept_encoding)
+        streaming = response.is_streamed and app.config["COMPRESS_STREAMS"]
+        algorithms = self.streaming_algorithms if streaming else self.enabled_algorithms
+        chosen_algorithm = _choose_algorithm(algorithms, accept_encoding)
 
         if (
             chosen_algorithm is None
             or response.mimetype not in self.compress_mimetypes_set
             or response.status_code < 200
             or response.status_code >= 300
-            or (response.is_streamed and app.config["COMPRESS_STREAMS"] is False)
+            or (response.is_streamed and not app.config["COMPRESS_STREAMS"])
             or "Content-Encoding" in response.headers
             or (
                 response.content_length is not None
@@ -214,20 +227,24 @@ class Compress:
             return response
 
         response.direct_passthrough = False
-
-        if self.cache is not None:
-            key = f"{chosen_algorithm};{self.cache_key(request)}"
-            compressed_content = self.cache.get(key)
-            if compressed_content is None:
-                compressed_content = self.compress(app, response, chosen_algorithm)
-            self.cache.set(key, compressed_content)
-        else:
-            compressed_content = self.compress(app, response, chosen_algorithm)
-
-        response.set_data(compressed_content)
-
         response.headers["Content-Encoding"] = chosen_algorithm
-        response.headers["Content-Length"] = response.content_length
+
+        if streaming:
+            chunks = response.iter_encoded()
+            response.response = self.compress_chunks(app, chunks, chosen_algorithm)
+            response.headers.pop("Content-Length", None)
+        else:
+            if self.cache is not None:
+                key = f"{chosen_algorithm};{self.cache_key(request)}"
+                compressed_content = self.cache.get(key)
+                if compressed_content is None:
+                    compressed_content = self.compress(app, response, chosen_algorithm)
+                self.cache.set(key, compressed_content)
+            else:
+                compressed_content = self.compress(app, response, chosen_algorithm)
+
+            response.set_data(compressed_content)
+            response.headers["Content-Length"] = response.content_length
 
         # "123456789"   => "123456789:gzip"   - A strong ETag validator
         # W/"123456789" => W/"123456789:gzip" - A weak ETag validator
@@ -236,12 +253,9 @@ class Compress:
         if etag and not is_weak:
             response.set_etag(f"{etag}:{chosen_algorithm}", weak=is_weak)
 
-        if (
-            app.config["COMPRESS_EVALUATE_CONDITIONAL_REQUEST"]
-            and request.method in ("GET", "HEAD")
-            and (not response.is_streamed or app.config["COMPRESS_STREAMS"])
-        ):
-            response.make_conditional(request)
+        if app.config["COMPRESS_EVALUATE_CONDITIONAL_REQUEST"]:
+            if request.method in ("GET", "HEAD"):
+                response.make_conditional(request)
 
         return response
 
@@ -280,3 +294,43 @@ class Compress:
             return compression.zstd.compress(
                 response.get_data(), app.config["COMPRESS_ZSTD_LEVEL"]
             )
+        else:
+            raise ValueError(f"Unknown compression algorithm: {algorithm}")
+
+    def compress_chunks(self, app, chunks, algorithm):
+        if algorithm == "deflate":
+            compressor = compression.zlib.compressobj(
+                level=app.config["COMPRESS_DEFLATE_LEVEL"]
+            )
+            for data in chunks:
+                out = compressor.compress(data)
+                if out:
+                    yield out
+            out = compressor.flush()
+            if out:
+                yield out
+
+        elif algorithm == "br":
+            compressor = brotli.Compressor(
+                mode=app.config["COMPRESS_BR_MODE"],
+                quality=app.config["COMPRESS_BR_LEVEL"],
+                lgwin=app.config["COMPRESS_BR_WINDOW"],
+                lgblock=app.config["COMPRESS_BR_BLOCK"],
+            )
+            for data in chunks:
+                out = compressor.process(data)
+                if out:
+                    yield out
+            yield compressor.finish()
+
+        elif algorithm == "zstd":
+            compressor = compression.zstd.ZstdCompressor(
+                level=app.config["COMPRESS_ZSTD_LEVEL"]
+            )
+            for data in chunks:
+                out = compressor.compress(data)
+                if out:
+                    yield out
+            yield compressor.flush()
+        else:
+            raise ValueError(f"Unsupported streaming algorithm: {algorithm}")

@@ -443,7 +443,6 @@ class StreamTests(unittest.TestCase):
     def setUp(self):
         self.app = Flask(__name__)
         self.app.testing = True
-        self.app.config["COMPRESS_STREAMS"] = False
 
         self.file_path = os.path.join(os.getcwd(), "tests", "templates", "large.html")
         self.file_size = os.path.getsize(self.file_path)
@@ -457,8 +456,9 @@ class StreamTests(unittest.TestCase):
             return self.app.response_class(_stream(), mimetype="text/html")
 
     def test_no_compression_stream(self):
-        """Tests compression is skipped when response is streamed"""
+        """Tests compression is skipped when COMPRESS_STREAMS is False"""
         Compress(self.app)
+        self.app.config["COMPRESS_STREAMS"] = False
         client = self.app.test_client()
         for algorithm in ("gzip", "deflate", "br", "zstd", ""):
             headers = [("Accept-Encoding", algorithm)]
@@ -467,16 +467,24 @@ class StreamTests(unittest.TestCase):
             self.assertEqual(response.is_streamed, True)
             self.assertEqual(self.file_size, len(response.data))
 
-    def test_disabled_stream(self):
-        """Test that stream compression can be disabled."""
+    def test_compression_stream(self):
         Compress(self.app)
-        self.app.config["COMPRESS_STREAMS"] = True
         client = self.app.test_client()
-        for algorithm in ("gzip", "deflate", "br", "zstd"):
+        for algorithm in ("deflate", "br", "zstd"):
             headers = [("Accept-Encoding", algorithm)]
             response = client.get("/stream/large", headers=headers)
             self.assertIn("Content-Encoding", response.headers)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.is_streamed, True)
             self.assertGreater(self.file_size, len(response.data))
+
+        # gzip is not supported for streamed responses
+        headers = [("Accept-Encoding", "gzip")]
+        response = client.get("/stream/large", headers=headers)
+        self.assertNotIn("Content-Encoding", response.headers)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.is_streamed, True)
+        self.assertEqual(self.file_size, len(response.data))
 
 
 class CachingCompressionTests(unittest.TestCase):

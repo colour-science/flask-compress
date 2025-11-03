@@ -2,6 +2,13 @@
 
 All notable changes to `flask-compress` will be documented in this file.
 
+## 1.21 (development)
+
+- streaming is now supported:
+    - the previous behavior was that is `COMPRESS_STREAMS` was `True` (the default), streaming responses were compressed in 1 sitting, meaning streaming responses were effectively not streamed, If `COMPRESS_STREAMS` was `False`, streaming responses were not compressed at all.
+    - now, if `COMPRESS_STREAMS` is `True`, streaming responses are compressed on-the-fly as data is streamed, which means that streaming responses are still streamed, but compressed. If `COMPRESS_STREAMS` is `False`, streaming responses are not compressed at all, as before.
+    - we have a new `COMPRESS_ALGORITHM_STREAMING` config option to specify the compression algorithm to use for streaming responses, which defaults to `["zstd", "br", "deflate"]`, as `"gzip"` is not suitable for streaming compression.
+
 ## 1.20 (2025-10-20)
 
 - the new `COMPRESS_EVALUATE_CONDITIONAL_REQUEST` config option is now `True` by default

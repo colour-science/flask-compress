@@ -180,7 +180,7 @@ class Compress:
             ("COMPRESS_REGISTER", True),
             ("COMPRESS_STREAMS", True),
             ("COMPRESS_EVALUATE_CONDITIONAL_REQUEST", True),
-            ("COMPRESS_EVALUATE_CONDITIONAL_REQUEST_STREAMING_ENDPOINT", ["static"]),
+            ("COMPRESS_STREAMING_ENDPOINT_CONDITIONAL", ["static"]),
             ("COMPRESS_ALGORITHM", ["zstd", "br", "gzip", "deflate"]),
             ("COMPRESS_ALGORITHM_STREAMING", ["zstd", "br", "deflate"]),  # no gzip
         ]
@@ -195,8 +195,8 @@ class Compress:
         self.compress_mimetypes_set = set(app.config["COMPRESS_MIMETYPES"])
         self.enabled_algorithms = _format(app.config["COMPRESS_ALGORITHM"])
         self.streaming_algorithms = _format(app.config["COMPRESS_ALGORITHM_STREAMING"])
-        self.evaluate_conditional_request_streaming_endpoint = set(
-            app.config["COMPRESS_EVALUATE_CONDITIONAL_REQUEST_STREAMING_ENDPOINT"]
+        self.streaming_endpoint_with_conditional = set(
+            app.config["COMPRESS_STREAMING_ENDPOINT_CONDITIONAL"]
         )
 
         if app.config["COMPRESS_REGISTER"] and app.config["COMPRESS_MIMETYPES"]:
@@ -214,7 +214,7 @@ class Compress:
         accept_encoding = request.headers.get("Accept-Encoding", "")
         streaming_compressed = response.is_streamed and app.config["COMPRESS_STREAMS"]
         streaming_conditional = response.is_streamed and (
-            request.endpoint in self.evaluate_conditional_request_streaming_endpoint
+            request.endpoint in self.streaming_endpoint_with_conditional
         )
         algorithms = (
             self.streaming_algorithms

@@ -3,7 +3,13 @@ import os
 import tempfile
 import unittest
 
-from flask import Flask, make_response, render_template, request, stream_with_context
+from flask import (
+    Flask,
+    make_response,
+    render_template,
+    request,
+    stream_with_context,
+)
 from flask_caching import Cache
 
 from flask_compress import Compress, DictCache
@@ -63,6 +69,12 @@ class DefaultsTest(unittest.TestCase):
             self.app.config["COMPRESS_ALGORITHM"], ["zstd", "br", "gzip", "deflate"]
         )
 
+    def test_algorithm_streaming(self):
+        """Tests COMPRESS_ALGORITHM_STREAMING default value is correctly set."""
+        self.assertEqual(
+            self.app.config["COMPRESS_ALGORITHM_STREAMING"], ["zstd", "br", "deflate"]
+        )
+
     def test_default_deflate_settings(self):
         """Tests COMPRESS_DELATE_LEVEL default value is correctly set."""
         self.assertEqual(self.app.config["COMPRESS_DEFLATE_LEVEL"], -1)
@@ -95,6 +107,13 @@ class DefaultsTest(unittest.TestCase):
         """Tests COMPRESS_EVALUATE_CONDITIONAL_REQUEST default value
         is correctly set."""
         self.assertEqual(self.app.config["COMPRESS_EVALUATE_CONDITIONAL_REQUEST"], True)
+
+    def test_streaming_endpoint_conditional(self):
+        """Tests COMPRESS_STREAMING_ENDPOINT_CONDITIONAL default value
+        is correctly set."""
+        self.assertEqual(
+            self.app.config["COMPRESS_STREAMING_ENDPOINT_CONDITIONAL"], ["static"]
+        )
 
 
 class InitTests(unittest.TestCase):

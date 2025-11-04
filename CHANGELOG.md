@@ -2,6 +2,13 @@
 
 All notable changes to `flask-compress` will be documented in this file.
 
+## 1.22 (2025-11-04)
+
+- fix possible `RuntimeError` when applying compression to a streaming endpoint
+- no longer apply `make_conditional` to streaming responses, as it had the effect of buffering the entire response, which defeats the purpose of streaming responses, unless the `request.endpoint` is in a new `COMPRESS_STREAMING_ENDPOINT_CONDITIONAL` config option, which defaults to `["static"]`
+
+> As serving static content with Flask is using *streaming* responses, we wanted to preserve the correct handling of conditional requests (i.e. 304 Not Modified responses) for static content, while avoiding buffering the entire response when compressing streaming responses for other endpoints
+
 ## 1.21 (2025-11-04)
 
 - compressing *streaming* responses is now supported:

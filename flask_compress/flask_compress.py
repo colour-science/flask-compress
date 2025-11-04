@@ -11,7 +11,7 @@ try:
 except ImportError:
     import brotli
 
-from flask import after_this_request, current_app, request
+from flask import after_this_request, current_app, request, stream_with_context
 
 from .compat import compression
 
@@ -231,7 +231,8 @@ class Compress:
 
         if streaming:
             chunks = response.iter_encoded()
-            response.response = _compress_chunks(app, chunks, chosen_algorithm)
+            _gen_compressed_content = _compress_chunks(app, chunks, chosen_algorithm)
+            response.response = stream_with_context(_gen_compressed_content)
             response.headers.pop("Content-Length", None)
         else:
             if self.cache is not None:

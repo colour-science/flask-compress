@@ -146,3 +146,4 @@ Within your Flask application's settings you can provide the following settings 
 | `COMPRESS_ALGORITHM_STREAMING` | Supported compression algorithms for streaming. | `['zstd', 'br', 'deflate']` |
 | `COMPRESS_STREAMS` | Compress streaming responses. | `True` |
 | `COMPRESS_EVALUATE_CONDITIONAL_REQUEST` | Compress evaluates conditional requests. | `True` |
+| `COMPRESS_EVALUATE_CONDITIONAL_REQUEST_STREAMING_ENDPOINT` | Streaming endpoints where we evaluate conditional requests. | `["static"]` |

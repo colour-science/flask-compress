@@ -180,6 +180,7 @@ class Compress:
             ("COMPRESS_REGISTER", True),
             ("COMPRESS_STREAMS", True),
             ("COMPRESS_EVALUATE_CONDITIONAL_REQUEST", True),
+            ("COMPRESS_EVALUATE_CONDITIONAL_REQUEST_STREAMING_ENDPOINT", ["static"]),
             ("COMPRESS_ALGORITHM", ["zstd", "br", "gzip", "deflate"]),
             ("COMPRESS_ALGORITHM_STREAMING", ["zstd", "br", "deflate"]),  # no gzip
         ]
@@ -194,6 +195,9 @@ class Compress:
         self.compress_mimetypes_set = set(app.config["COMPRESS_MIMETYPES"])
         self.enabled_algorithms = _format(app.config["COMPRESS_ALGORITHM"])
         self.streaming_algorithms = _format(app.config["COMPRESS_ALGORITHM_STREAMING"])
+        self.evaluate_conditional_request_streaming_endpoint = set(
+            app.config["COMPRESS_EVALUATE_CONDITIONAL_REQUEST_STREAMING_ENDPOINT"]
+        )
 
         if app.config["COMPRESS_REGISTER"] and app.config["COMPRESS_MIMETYPES"]:
             app.after_request(self.after_request)
@@ -208,8 +212,15 @@ class Compress:
             response.headers["Vary"] = f"{vary}, Accept-Encoding"
 
         accept_encoding = request.headers.get("Accept-Encoding", "")
-        streaming = response.is_streamed and app.config["COMPRESS_STREAMS"]
-        algorithms = self.streaming_algorithms if streaming else self.enabled_algorithms
+        streaming_compressed = response.is_streamed and app.config["COMPRESS_STREAMS"]
+        streaming_conditional = response.is_streamed and (
+            request.endpoint in self.evaluate_conditional_request_streaming_endpoint
+        )
+        algorithms = (
+            self.streaming_algorithms
+            if streaming_compressed
+            else self.enabled_algorithms
+        )
         chosen_algorithm = _choose_algorithm(algorithms, accept_encoding)
 
         if (
@@ -229,7 +240,7 @@ class Compress:
         response.direct_passthrough = False
         response.headers["Content-Encoding"] = chosen_algorithm
 
-        if streaming:
+        if streaming_compressed:
             chunks = response.iter_encoded()
             _gen_compressed_content = _compress_chunks(app, chunks, chosen_algorithm)
             response.response = stream_with_context(_gen_compressed_content)
@@ -256,9 +267,12 @@ class Compress:
         if etag and not is_weak:
             response.set_etag(f"{etag}:{chosen_algorithm}", weak=is_weak)
 
-        if app.config["COMPRESS_EVALUATE_CONDITIONAL_REQUEST"]:
-            if request.method in ("GET", "HEAD"):
-                response.make_conditional(request)
+        if (
+            app.config["COMPRESS_EVALUATE_CONDITIONAL_REQUEST"]
+            and request.method in ("GET", "HEAD")
+            and (not response.is_streamed or streaming_conditional)
+        ):
+            response.make_conditional(request)
 
         return response
 

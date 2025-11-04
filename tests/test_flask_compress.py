@@ -3,7 +3,7 @@ import os
 import tempfile
 import unittest
 
-from flask import Flask, make_response, render_template, request
+from flask import Flask, make_response, render_template, request, stream_with_context
 from flask_caching import Cache
 
 from flask_compress import Compress, DictCache
@@ -116,7 +116,6 @@ class UrlTests(unittest.TestCase):
         self.app.testing = True
 
         small_path = os.path.join(os.getcwd(), "tests", "templates", "small.html")
-
         large_path = os.path.join(os.getcwd(), "tests", "templates", "large.html")
 
         self.small_size = os.path.getsize(small_path) - 1
@@ -485,6 +484,46 @@ class StreamTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.is_streamed, True)
         self.assertEqual(self.file_size, len(response.data))
+
+
+class StreamTestsWithETags(unittest.TestCase):
+    def setUp(self):
+        self.app = Flask(__name__)
+        self.app.testing = True
+
+        self.file_path = os.path.join(os.getcwd(), "tests", "templates", "large.html")
+        self.file_size = os.path.getsize(self.file_path)
+
+        Compress(self.app)
+
+        @self.app.route("/stream/large")
+        def stream():
+            def _stream():
+                with open(self.file_path) as f:
+                    yield from f.readlines()
+
+            rv = make_response(stream_with_context(_stream()))
+            rv.mimetype = "text/html"
+            rv.set_etag("stream-etag", weak=False)
+            return rv
+
+    def test_conditionals_are_skipped_on_streaming(self):
+        client = self.app.test_client()
+        r1 = client.get("/stream/large", headers=[("Accept-Encoding", "br")])
+        tag, is_weak = r1.get_etag()
+        self.assertEqual(r1.status_code, 200)
+        self.assertEqual(r1.is_streamed, True)
+        self.assertEqual(tag, "stream-etag:br")
+        self.assertFalse(is_weak)
+        r1.close()
+
+        r2 = client.get(
+            "/stream/large",
+            headers=[("Accept-Encoding", "br"), ("If-None-Match", r1.headers["ETag"])],
+        )
+        self.assertEqual(r2.status_code, 200)  # Should be 200, not 304
+        self.assertEqual(r2.is_streamed, True)
+        r2.close()
 
 
 class CachingCompressionTests(unittest.TestCase):

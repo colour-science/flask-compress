@@ -339,6 +339,21 @@ def _compress_chunks(app, chunks, algorithm):
         if out:
             yield out
 
+    elif algorithm == "gzip":
+        level = app.config["COMPRESS_LEVEL"]
+        compressor = compression.zlib.compressobj(
+            level,
+            compression.zlib.DEFLATED,
+            compression.zlib.MAX_WBITS + 16,
+        )
+        for data in chunks:
+            out = compressor.compress(data)
+            if out:
+                yield out
+        out = compressor.flush()
+        if out:
+            yield out
+
     elif algorithm == "deflate":
         level = app.config["COMPRESS_DEFLATE_LEVEL"]
         compressor = compression.zlib.compressobj(level=level)

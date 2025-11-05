@@ -507,11 +507,13 @@ class StreamTests(unittest.TestCase):
 
 class StreamTestsWithETags(unittest.TestCase):
     def setUp(self):
-        self.app = Flask(__name__)
+        self.app = Flask(__name__, static_folder="web", static_url_path="/path")
         self.app.testing = True
 
         self.file_path = os.path.join(os.getcwd(), "tests", "templates", "large.html")
         self.file_size = os.path.getsize(self.file_path)
+
+        self.app.config["COMPRESS_MIN_SIZE"] = 1
 
         Compress(self.app)
 
@@ -528,10 +530,13 @@ class StreamTestsWithETags(unittest.TestCase):
 
     def test_conditionals_are_skipped_on_streaming(self):
         client = self.app.test_client()
+
         r1 = client.get("/stream/large", headers=[("Accept-Encoding", "br")])
         tag, is_weak = r1.get_etag()
         self.assertEqual(r1.status_code, 200)
         self.assertEqual(r1.is_streamed, True)
+        self.assertIn("Content-Encoding", r1.headers)
+        self.assertEqual(r1.headers.get("Content-Encoding"), "br")
         self.assertEqual(tag, "stream-etag:br")
         self.assertFalse(is_weak)
         r1.close()
@@ -542,6 +547,39 @@ class StreamTestsWithETags(unittest.TestCase):
         )
         self.assertEqual(r2.status_code, 200)  # Should be 200, not 304
         self.assertEqual(r2.is_streamed, True)
+        self.assertIn("Content-Encoding", r1.headers)
+        self.assertEqual(r1.headers.get("Content-Encoding"), "br")
+        r2.close()
+
+    def test_static_exception_to_conditionals(self):
+        # Here we test that the static endpoint, which is using streaming responses,
+        # still respects conditional requests even when streaming.
+        # We use a custom static folder and static url path to show that the test
+        # works even if those are changed from the defaults.
+        # In practice there is almost no chance for a user to accidentally write a
+        # streaming 'static' endpoint, as this will raise an exception in Flask,
+        # because of the predefined static file handling.
+        client = self.app.test_client()
+
+        r1 = client.get("/path/test.xml", headers=[("Accept-Encoding", "br")])
+        tag, is_weak = r1.get_etag()
+        self.assertEqual(r1.status_code, 200)
+        self.assertEqual(r1.is_streamed, True)
+        self.assertIn("Content-Encoding", r1.headers)
+        self.assertEqual(r1.headers.get("Content-Encoding"), "br")
+        self.assertIsNotNone(tag)
+        self.assertEqual(tag[-3:], ":br")
+        self.assertFalse(is_weak)
+        r1.close()
+
+        r2 = client.get(
+            "/path/test.xml",
+            headers=[("Accept-Encoding", "br"), ("If-None-Match", r1.headers["ETag"])],
+        )
+        self.assertEqual(r2.status_code, 304)  # static endpoint has an exception
+        self.assertEqual(r2.is_streamed, True)
+        self.assertIn("Content-Encoding", r1.headers)
+        self.assertEqual(r1.headers.get("Content-Encoding"), "br")
         r2.close()
 
 

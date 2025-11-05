@@ -9,7 +9,7 @@ All notable changes to `flask-compress` will be documented in this file.
 
 > As serving static content with Flask is using *streaming* responses, we wanted to preserve the correct handling of conditional requests (i.e. 304 Not Modified responses) for static content, while avoiding buffering the entire response when compressing streaming responses for other endpoints
 
-## 1.21 (2025-11-04)
+## 1.21 (2025-11-04, yanked)
 
 - compressing *streaming* responses is now supported:
     - the *previous* behavior was:

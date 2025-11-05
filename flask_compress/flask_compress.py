@@ -313,6 +313,20 @@ def _compress_data(app, data, algorithm):
     raise ValueError(f"Unknown compression algorithm: {algorithm}")
 
 
+def _uncompress_data(data, algorithm):
+    # This is used for tests purposes only.
+    if algorithm == "zstd":
+        return compression.zstd.decompress(data)
+    if algorithm == "gzip":
+        return compression.gzip.decompress(data)
+    if algorithm == "deflate":
+        return compression.zlib.decompress(data)
+    if algorithm == "br":
+        return brotli.decompress(data)
+
+    raise ValueError(f"Unknown compression algorithm: {algorithm}")
+
+
 def _compress_chunks(app, chunks, algorithm):
     if algorithm == "zstd":
         level = app.config["COMPRESS_ZSTD_LEVEL"]

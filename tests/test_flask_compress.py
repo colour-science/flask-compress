@@ -13,7 +13,7 @@ from flask import (
 from flask_caching import Cache
 
 from flask_compress import Compress, DictCache
-from flask_compress.flask_compress import _choose_algorithm
+from flask_compress.flask_compress import _choose_algorithm, _uncompress_data
 
 
 class DefaultsTest(unittest.TestCase):
@@ -134,11 +134,11 @@ class UrlTests(unittest.TestCase):
         self.app = Flask(__name__)
         self.app.testing = True
 
-        small_path = os.path.join(os.getcwd(), "tests", "templates", "small.html")
-        large_path = os.path.join(os.getcwd(), "tests", "templates", "large.html")
+        self.small_path = os.path.join(os.getcwd(), "tests", "templates", "small.html")
+        self.large_path = os.path.join(os.getcwd(), "tests", "templates", "large.html")
 
-        self.small_size = os.path.getsize(small_path) - 1
-        self.large_size = os.path.getsize(large_path) - 1
+        self.small_size = os.path.getsize(self.small_path) - 1
+        self.large_size = os.path.getsize(self.large_path) - 1
 
         Compress(self.app)
 
@@ -149,6 +149,20 @@ class UrlTests(unittest.TestCase):
         @self.app.route("/large/")
         def large():
             return render_template("large.html")
+
+    def test_compressed_content(self):
+        client = self.app.test_client()
+        with open(self.large_path, "rb") as f:
+            original_data = f.read().rstrip()  # flask strips trailing newline
+
+        for algorithm in ("gzip", "deflate", "br", "zstd"):
+            headers = [("Accept-Encoding", algorithm)]
+            response = client.get("/large/", headers=headers)
+            self.assertIn("Content-Encoding", response.headers)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.is_streamed, True)
+            self.assertGreater(self.large_size, len(response.data))
+            self.assertEqual(original_data, _uncompress_data(response.data, algorithm))
 
     def client_get(self, ufs):
         client = self.app.test_client()
@@ -488,6 +502,9 @@ class StreamTests(unittest.TestCase):
     def test_compression_stream(self):
         Compress(self.app)
         client = self.app.test_client()
+        with open(self.file_path, "rb") as f:
+            original_data = f.read()
+
         for algorithm in ("deflate", "br", "zstd"):
             headers = [("Accept-Encoding", algorithm)]
             response = client.get("/stream/large", headers=headers)
@@ -495,6 +512,7 @@ class StreamTests(unittest.TestCase):
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.is_streamed, True)
             self.assertGreater(self.file_size, len(response.data))
+            self.assertEqual(original_data, _uncompress_data(response.data, algorithm))
 
         # gzip is not supported for streamed responses
         headers = [("Accept-Encoding", "gzip")]
@@ -503,6 +521,7 @@ class StreamTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.is_streamed, True)
         self.assertEqual(self.file_size, len(response.data))
+        self.assertEqual(original_data, response.data)
 
 
 class StreamTestsWithETags(unittest.TestCase):

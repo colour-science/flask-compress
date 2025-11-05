@@ -2,6 +2,10 @@
 
 All notable changes to `flask-compress` will be documented in this file.
 
+## 1.23 (unreleased)
+
+- add `gzip` to supported algorithms for streaming responses, but not in the `COMPRESS_ALGORITHM_STREAMING` default values, so users have to explicitly enable it
+
 ## 1.22 (2025-11-04)
 
 - fix possible `RuntimeError` when applying compression to a streaming endpoint

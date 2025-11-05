@@ -124,6 +124,23 @@ compress.cache_key = get_cache_key
 
 If you do not want to pull an external dependency, you can use a simple in-memory cache using `compress.cache = flask_compress.DictCache()`.
 
+
+## ETag support
+
+Flask-Compress supports ETag headers for conditional requests. When a client makes a request with an `If-None-Match` header, Flask-Compress will evaluate the ETag and return a `304 Not Modified` response if the resource has not changed. This helps to reduce bandwidth usage and improve performance for clients that support caching.
+
+To disable ETag support, set the `COMPRESS_EVALUATE_CONDITIONAL_REQUEST` configuration option to `False` in your Flask application settings.
+
+> For streaming responses, ETag support is disabled by default, as this effectively requires buffering the entire response in memory to compute the ETag. If you want to enable ETag support for streaming responses, you can add the endpoint name to the `COMPRESS_STREAMING_ENDPOINT_CONDITIONAL` configuration option, which defaults to `["static"]` for static files served by Flask.
+
+## Streaming support
+
+Flask-Compress supports compressing streaming responses. By default, streaming responses are compressed using the algorithms specified in the `COMPRESS_ALGORITHM_STREAMING` configuration option.
+
+To disable streaming compression, set the `COMPRESS_STREAMS` configuration option to `False` in your Flask application settings.
+
+> As mentioned above, ETag support is disabled by default for streaming responses. If you want to enable it for specific endpoints, you can add the endpoint name to the `COMPRESS_STREAMING_ENDPOINT_CONDITIONAL` configuration option, but this will require buffering the entire response in memory to compute the ETag.
+
 ## Options
 
 Within your Flask application's settings you can provide the following settings to control the behavior of Flask-Compress. None of the settings are required.

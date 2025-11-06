@@ -24,13 +24,15 @@ jobs:
           - '3.12'
           - '3.13'
           - '3.14'
-          - 'pypy-3.9'
-          - 'pypy-3.10'
           - 'pypy-3.11'
-        os: [ubuntu-latest] #, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     name: ${{ matrix.os }} - ${{ matrix.python-version }}
     steps:
+    - name: Set git to not change line endings
+      run: |
+        git config --global core.autocrlf false
+        git config --global core.eol lf
     - uses: actions/checkout@v5
     - name: Get history and tags for SCM versioning to work
       run: |

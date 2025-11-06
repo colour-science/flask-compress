@@ -2,9 +2,10 @@
 
 All notable changes to `flask-compress` will be documented in this file.
 
-## 1.23 (unreleased)
+## 1.23 (2025-11-06)
 
 - add `gzip` to supported algorithms for streaming responses, but not in the `COMPRESS_ALGORITHM_STREAMING` default values, so users have to explicitly enable it
+- add Windows and MacOS to the list of platforms tested on GitHub Actions
 
 ## 1.22 (2025-11-04)
 

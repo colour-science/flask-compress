@@ -33,7 +33,7 @@ jobs:
       run: |
         git config --global core.autocrlf false
         git config --global core.eol lf
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Get history and tags for SCM versioning to work
       run: |
         git fetch --prune --unshallow
@@ -54,7 +54,7 @@ jobs:
     needs: [test]
     name: Build Python packages
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Get history and tags for SCM versioning to work
       run: |
         git fetch --prune --unshallow
@@ -68,7 +68,7 @@ jobs:
         pip install --upgrade wheel setuptools build
     - name: Build package
       run: python -m build -s -w -o dist/
-    - uses: actions/upload-artifact@v5
+    - uses: actions/upload-artifact@v6
       with:
         name: dist
         path: dist
@@ -83,7 +83,7 @@ jobs:
         python-version: "3.12"
     - name: Install dependencies
       run: pip install twine
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       with:
         name: dist
         path: dist
@@ -95,7 +95,7 @@ jobs:
     needs: [dist_check]
     name: PyPI upload
     steps:
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       with:
         name: dist
         path: dist

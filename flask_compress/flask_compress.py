@@ -2,34 +2,39 @@
 # Copyright (c) 2013-2017 William Fagan
 # License: The MIT License (MIT)
 
+from __future__ import annotations
+
 import functools
 from collections import defaultdict
+from collections.abc import Callable, Iterator
 from functools import lru_cache
+from typing import Any
 
 try:
     import brotlicffi as brotli
 except ImportError:
     import brotli
 
-from flask import after_this_request, current_app, request, stream_with_context
+from flask import Flask, after_this_request, current_app, request, stream_with_context
+from flask.wrappers import Response
 
 from .compat import compression
 
 
 class DictCache:
 
-    def __init__(self):
-        self.data = {}
+    def __init__(self) -> None:
+        self.data: dict[str, bytes] = {}
 
-    def get(self, key):
+    def get(self, key: str) -> bytes | None:
         return self.data.get(key)
 
-    def set(self, key, value):
+    def set(self, key: str, value: bytes) -> None:
         self.data[key] = value
 
 
 @lru_cache(maxsize=128)
-def _choose_algorithm(algorithms, accept_encoding):
+def _choose_algorithm(algorithms: tuple[str, ...], accept_encoding: str) -> str | None:
     """
     Determine which compression algorithm we're going to use based on the
     client request. The `Accept-Encoding` header may list one or more desired
@@ -96,7 +101,7 @@ def _choose_algorithm(algorithms, accept_encoding):
     return None
 
 
-def _format(algo):
+def _format(algo: str | list[str]) -> tuple[str, ...]:
     """Format the algorithm configuration into a tuple of strings.
 
     >>> _format("gzip, deflate, br")
@@ -122,7 +127,7 @@ class Compress:
     :type app: :class:`flask.Flask` or None
     """
 
-    def __init__(self, app=None):
+    def __init__(self, app: Flask | None = None) -> None:
         """
         An alternative way to pass your :class:`flask.Flask` application
         object to Flask-Compress. :meth:`init_app` also takes care of some
@@ -131,10 +136,16 @@ class Compress:
         :param app: the :class:`flask.Flask` application object.
         """
         self.app = app
+        self.cache: DictCache | None = None
+        self.cache_key: Callable[..., str] | None = None
+        self.compress_mimetypes_set: set[str] = set()
+        self.enabled_algorithms: tuple[str, ...] = ()
+        self.streaming_algorithms: tuple[str, ...] = ()
+        self.streaming_endpoint_with_conditional: set[str] = set()
         if app is not None:
             self.init_app(app)
 
-    def init_app(self, app):
+    def init_app(self, app: Flask) -> None:
         defaults = [
             (
                 "COMPRESS_MIMETYPES",
@@ -202,7 +213,7 @@ class Compress:
         if app.config["COMPRESS_REGISTER"] and app.config["COMPRESS_MIMETYPES"]:
             app.after_request(self.after_request)
 
-    def after_request(self, response):
+    def after_request(self, response: Response) -> Response:
         app = self.app or current_app
 
         vary = response.headers.get("Vary")
@@ -276,12 +287,12 @@ class Compress:
 
         return response
 
-    def compressed(self):
-        def decorator(f):
+    def compressed(self) -> Callable[..., Callable[..., Any]]:
+        def decorator(f: Callable[..., Any]) -> Callable[..., Any]:
             @functools.wraps(f)
-            def decorated_function(*args, **kwargs):
+            def decorated_function(*args: Any, **kwargs: Any) -> Any:
                 @after_this_request
-                def compressor(response):
+                def compressor(response: Response) -> Response:
                     return self.after_request(response)
 
                 return f(*args, **kwargs)
@@ -291,7 +302,7 @@ class Compress:
         return decorator
 
 
-def _compress_data(app, data, algorithm):
+def _compress_data(app: Flask, data: bytes, algorithm: str) -> bytes:
     if algorithm == "zstd":
         return compression.zstd.compress(data, app.config["COMPRESS_ZSTD_LEVEL"])
 
@@ -313,7 +324,7 @@ def _compress_data(app, data, algorithm):
     raise ValueError(f"Unknown compression algorithm: {algorithm}")
 
 
-def _uncompress_data(data, algorithm):
+def _uncompress_data(data: bytes, algorithm: str) -> bytes:
     # This is used for tests purposes only.
     if algorithm == "zstd":
         return compression.zstd.decompress(data)
@@ -327,7 +338,7 @@ def _uncompress_data(data, algorithm):
     raise ValueError(f"Unknown compression algorithm: {algorithm}")
 
 
-def _compress_chunks(app, chunks, algorithm):
+def _compress_chunks(app: Flask, chunks: Iterator[bytes], algorithm: str) -> Iterator[bytes]:
     if algorithm == "zstd":
         level = app.config["COMPRESS_ZSTD_LEVEL"]
         compressor = compression.zstd.ZstdCompressor(level=level)

@@ -127,6 +127,13 @@ class Compress:
     :type app: :class:`flask.Flask` or None
     """
 
+    cache: DictCache | None
+    cache_key: Callable[..., str] | None
+    compress_mimetypes_set: set[str]
+    enabled_algorithms: tuple[str, ...]
+    streaming_algorithms: tuple[str, ...]
+    streaming_endpoint_with_conditional: set[str]
+
     def __init__(self, app: Flask | None = None) -> None:
         """
         An alternative way to pass your :class:`flask.Flask` application
@@ -136,12 +143,6 @@ class Compress:
         :param app: the :class:`flask.Flask` application object.
         """
         self.app = app
-        self.cache: DictCache | None = None
-        self.cache_key: Callable[..., str] | None = None
-        self.compress_mimetypes_set: set[str] = set()
-        self.enabled_algorithms: tuple[str, ...] = ()
-        self.streaming_algorithms: tuple[str, ...] = ()
-        self.streaming_endpoint_with_conditional: set[str] = set()
         if app is not None:
             self.init_app(app)
 

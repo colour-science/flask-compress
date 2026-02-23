@@ -340,7 +340,9 @@ def _uncompress_data(data: bytes, algorithm: str) -> bytes:
     raise ValueError(f"Unknown compression algorithm: {algorithm}")
 
 
-def _compress_chunks(app: Flask, chunks: Iterator[bytes], algorithm: str) -> Iterator[bytes]:
+def _compress_chunks(
+    app: Flask, chunks: Iterator[bytes], algorithm: str
+) -> Iterator[bytes]:
     if algorithm == "zstd":
         level = app.config["COMPRESS_ZSTD_LEVEL"]
         compressor = compression.zstd.ZstdCompressor(level=level)

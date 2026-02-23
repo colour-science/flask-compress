@@ -11,9 +11,9 @@ from functools import lru_cache
 from typing import Any
 
 try:
-    import brotlicffi as brotli
+    import brotlicffi as brotli  # type: ignore[import-not-found]
 except ImportError:
-    import brotli
+    import brotli  # type: ignore[import-untyped]
 
 from flask import Flask, after_this_request, current_app, request, stream_with_context
 from flask.wrappers import Response
@@ -51,7 +51,7 @@ def _choose_algorithm(algorithms: tuple[str, ...], accept_encoding: str) -> str 
     fallback_to_any = False
 
     # Map quality factors to requested algorithm names.
-    algos_by_quality = defaultdict(set)
+    algos_by_quality: defaultdict[float, set[str | None]] = defaultdict(set)
 
     # Set of supported algorithms
     server_algos_set = set(algorithms)
@@ -258,6 +258,7 @@ class Compress:
             response.headers.pop("Content-Length", None)
         else:
             if self.cache is not None:
+                assert self.cache_key is not None
                 key = f"{chosen_algorithm};{self.cache_key(request)}"
                 compressed_content = self.cache.get(key)
                 if compressed_content is None:
@@ -276,7 +277,7 @@ class Compress:
         etag, is_weak = response.get_etag()
 
         if etag and not is_weak:
-            response.set_etag(f"{etag}:{chosen_algorithm}", weak=is_weak)
+            response.set_etag(f"{etag}:{chosen_algorithm}", weak=False)
 
         if (
             app.config["COMPRESS_EVALUATE_CONDITIONAL_REQUEST"]

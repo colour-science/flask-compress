@@ -33,3 +33,13 @@ fail_under = 94
 [tool.coverage.html]
 directory = "htmlcov/"
 skip_covered = false
+
+
+# type checking
+# --------------
+
+[tool.mypy]
+strict = true
+# Third-party compression libraries (brotli, zstd, gzip) lack type stubs,
+# so their return types are inferred as Any.
+warn_return_any = false

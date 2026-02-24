@@ -8,17 +8,22 @@ import functools
 from collections import defaultdict
 from collections.abc import Callable, Iterator
 from functools import lru_cache
-from typing import Any
+from typing import Any, Protocol
 
 try:
-    import brotlicffi as brotli  # type: ignore[import-not-found]
+    import brotlicffi as brotli
 except ImportError:
-    import brotli  # type: ignore[import-untyped]
+    import brotli
 
 from flask import Flask, after_this_request, current_app, request, stream_with_context
 from flask.wrappers import Response
 
 from .compat import compression
+
+
+class CacheBackend(Protocol):
+    def get(self, key: str) -> bytes | None: ...
+    def set(self, key: str, value: bytes) -> bool | None: ...
 
 
 class DictCache:
@@ -127,7 +132,7 @@ class Compress:
     :type app: :class:`flask.Flask` or None
     """
 
-    cache: DictCache | None
+    cache: CacheBackend | None
     cache_key: Callable[..., str] | None
     compress_mimetypes_set: set[str]
     enabled_algorithms: tuple[str, ...]
@@ -306,13 +311,19 @@ class Compress:
 
 def _compress_data(app: Flask, data: bytes, algorithm: str) -> bytes:
     if algorithm == "zstd":
-        return compression.zstd.compress(data, app.config["COMPRESS_ZSTD_LEVEL"])  # type: ignore[no-any-return]
+        return compression.zstd.compress(  # type: ignore[no-any-return]
+            data, app.config["COMPRESS_ZSTD_LEVEL"]
+        )
 
     if algorithm == "gzip":
-        return compression.gzip.compress(data, app.config["COMPRESS_LEVEL"])  # type: ignore[no-any-return]
+        return compression.gzip.compress(  # type: ignore[no-any-return]
+            data, app.config["COMPRESS_LEVEL"]
+        )
 
     if algorithm == "deflate":
-        return compression.zlib.compress(data, app.config["COMPRESS_DEFLATE_LEVEL"])  # type: ignore[no-any-return]
+        return compression.zlib.compress(  # type: ignore[no-any-return]
+            data, app.config["COMPRESS_DEFLATE_LEVEL"]
+        )
 
     if algorithm == "br":
         return brotli.compress(  # type: ignore[no-any-return]

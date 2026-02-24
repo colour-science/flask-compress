@@ -40,3 +40,7 @@ skip_covered = false
 
 [tool.mypy]
 strict = true
+
+[[tool.mypy.overrides]]
+module = ["brotli", "brotlicffi", "backports.*", "flask_caching"]
+ignore_missing_imports = true

@@ -2,15 +2,19 @@ import gzip
 import os
 import tempfile
 import unittest
+from collections.abc import Iterator
 
 from flask import (
     Flask,
+    Request,
+    Response,
     make_response,
     render_template,
     request,
     stream_with_context,
 )
 from flask_caching import Cache
+from werkzeug.test import TestResponse
 
 from flask_compress import Compress, DictCache
 from flask_compress.flask_compress import _choose_algorithm, _uncompress_data
@@ -19,13 +23,13 @@ ALGORITHMS = ("gzip", "deflate", "br", "zstd")
 
 
 class DefaultsTest(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.app = Flask(__name__)
         self.app.testing = True
 
         Compress(self.app)
 
-    def test_mimetypes_default(self):
+    def test_mimetypes_default(self) -> None:
         """Tests COMPRESS_MIMETYPES default value is correctly set."""
         defaults = [
             "text/html",
@@ -57,60 +61,60 @@ class DefaultsTest(unittest.TestCase):
         ]
         self.assertEqual(self.app.config["COMPRESS_MIMETYPES"], defaults)
 
-    def test_level_default(self):
+    def test_level_default(self) -> None:
         """Tests COMPRESS_LEVEL default value is correctly set."""
         self.assertEqual(self.app.config["COMPRESS_LEVEL"], 6)
 
-    def test_min_size_default(self):
+    def test_min_size_default(self) -> None:
         """Tests COMPRESS_MIN_SIZE default value is correctly set."""
         self.assertEqual(self.app.config["COMPRESS_MIN_SIZE"], 500)
 
-    def test_algorithm_default(self):
+    def test_algorithm_default(self) -> None:
         """Tests COMPRESS_ALGORITHM default value is correctly set."""
         self.assertEqual(
             self.app.config["COMPRESS_ALGORITHM"], ["zstd", "br", "gzip", "deflate"]
         )
 
-    def test_algorithm_streaming(self):
+    def test_algorithm_streaming(self) -> None:
         """Tests COMPRESS_ALGORITHM_STREAMING default value is correctly set."""
         self.assertEqual(
             self.app.config["COMPRESS_ALGORITHM_STREAMING"], ["zstd", "br", "deflate"]
         )
 
-    def test_default_deflate_settings(self):
+    def test_default_deflate_settings(self) -> None:
         """Tests COMPRESS_DELATE_LEVEL default value is correctly set."""
         self.assertEqual(self.app.config["COMPRESS_DEFLATE_LEVEL"], -1)
 
-    def test_mode_default(self):
+    def test_mode_default(self) -> None:
         """Tests COMPRESS_BR_MODE default value is correctly set."""
         self.assertEqual(self.app.config["COMPRESS_BR_MODE"], 0)
 
-    def test_quality_level_default(self):
+    def test_quality_level_default(self) -> None:
         """Tests COMPRESS_BR_LEVEL default value is correctly set."""
         self.assertEqual(self.app.config["COMPRESS_BR_LEVEL"], 4)
 
-    def test_window_size_default(self):
+    def test_window_size_default(self) -> None:
         """Tests COMPRESS_BR_WINDOW default value is correctly set."""
         self.assertEqual(self.app.config["COMPRESS_BR_WINDOW"], 22)
 
-    def test_block_size_default(self):
+    def test_block_size_default(self) -> None:
         """Tests COMPRESS_BR_BLOCK default value is correctly set."""
         self.assertEqual(self.app.config["COMPRESS_BR_BLOCK"], 0)
 
-    def test_stream(self):
+    def test_stream(self) -> None:
         """Tests COMPRESS_STREAMS default value is correctly set."""
         self.assertEqual(self.app.config["COMPRESS_STREAMS"], True)
 
-    def test_quality_level_default_zstd(self):
+    def test_quality_level_default_zstd(self) -> None:
         """Tests COMPRESS_ZSTD_LEVEL default value is correctly set."""
         self.assertEqual(self.app.config["COMPRESS_ZSTD_LEVEL"], 3)
 
-    def test_evaluate_conditional_request(self):
+    def test_evaluate_conditional_request(self) -> None:
         """Tests COMPRESS_EVALUATE_CONDITIONAL_REQUEST default value
         is correctly set."""
         self.assertEqual(self.app.config["COMPRESS_EVALUATE_CONDITIONAL_REQUEST"], True)
 
-    def test_streaming_endpoint_conditional(self):
+    def test_streaming_endpoint_conditional(self) -> None:
         """Tests COMPRESS_STREAMING_ENDPOINT_CONDITIONAL default value
         is correctly set."""
         self.assertEqual(
@@ -119,20 +123,20 @@ class DefaultsTest(unittest.TestCase):
 
 
 class InitTests(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.app = Flask(__name__)
         self.app.testing = True
 
-    def test_constructor_init(self):
+    def test_constructor_init(self) -> None:
         Compress(self.app)
 
-    def test_delayed_init(self):
+    def test_delayed_init(self) -> None:
         compress = Compress()
         compress.init_app(self.app)
 
 
 class UrlTests(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.app = Flask(__name__)
         self.app.testing = True
 
@@ -145,14 +149,14 @@ class UrlTests(unittest.TestCase):
         Compress(self.app)
 
         @self.app.route("/small/")
-        def small():
+        def small() -> str:
             return render_template("small.html")
 
         @self.app.route("/large/")
-        def large():
+        def large() -> str:
             return render_template("large.html")
 
-    def test_compressed_content(self):
+    def test_compressed_content(self) -> None:
         client = self.app.test_client()
         with open(self.large_path, "rb") as f:
             original_data = f.read().rstrip()  # flask strips trailing newline
@@ -166,13 +170,13 @@ class UrlTests(unittest.TestCase):
             self.assertGreater(self.large_size, len(response.data))
             self.assertEqual(original_data, _uncompress_data(response.data, algorithm))
 
-    def client_get(self, ufs):
+    def client_get(self, ufs: str) -> TestResponse:
         client = self.app.test_client()
         response = client.get(ufs, headers=[("Accept-Encoding", "gzip")])
         self.assertEqual(response.status_code, 200)
         return response
 
-    def test_br_algorithm(self):
+    def test_br_algorithm(self) -> None:
         client = self.app.test_client()
         headers = [("Accept-Encoding", "br")]
 
@@ -182,7 +186,7 @@ class UrlTests(unittest.TestCase):
         response = client.options("/large/", headers=headers)
         self.assertEqual(response.status_code, 200)
 
-    def test_zstd_algorithm(self):
+    def test_zstd_algorithm(self) -> None:
         client = self.app.test_client()
         headers = [("Accept-Encoding", "zstd")]
 
@@ -192,7 +196,7 @@ class UrlTests(unittest.TestCase):
         response = client.options("/large/", headers=headers)
         self.assertEqual(response.status_code, 200)
 
-    def test_compress_min_size(self):
+    def test_compress_min_size(self) -> None:
         """Tests COMPRESS_MIN_SIZE correctly affects response data."""
         response = self.client_get("/small/")
         self.assertEqual(self.small_size, len(response.data))
@@ -200,18 +204,18 @@ class UrlTests(unittest.TestCase):
         response = self.client_get("/large/")
         self.assertNotEqual(self.large_size, len(response.data))
 
-    def test_mimetype_mismatch(self):
+    def test_mimetype_mismatch(self) -> None:
         """Tests if mimetype not in COMPRESS_MIMETYPES."""
         response = self.client_get("/static/1.png")
         self.assertEqual(response.mimetype, "image/png")
 
-    def test_content_length_options(self):
+    def test_content_length_options(self) -> None:
         client = self.app.test_client()
         headers = [("Accept-Encoding", "gzip")]
         response = client.options("/small/", headers=headers)
         self.assertEqual(response.status_code, 200)
 
-    def test_gzip_compression_level(self):
+    def test_gzip_compression_level(self) -> None:
         """Tests COMPRESS_LEVEL correctly affects response data."""
         self.app.config["COMPRESS_LEVEL"] = 1
         client = self.app.test_client()
@@ -225,7 +229,7 @@ class UrlTests(unittest.TestCase):
 
         self.assertNotEqual(response1_size, response6_size)
 
-    def test_br_compression_level(self):
+    def test_br_compression_level(self) -> None:
         """Tests that COMPRESS_BR_LEVEL correctly affects response data."""
         self.app.config["COMPRESS_BR_LEVEL"] = 4
         client = self.app.test_client()
@@ -239,7 +243,7 @@ class UrlTests(unittest.TestCase):
 
         self.assertNotEqual(response4_size, response11_size)
 
-    def test_deflate_compression_level(self):
+    def test_deflate_compression_level(self) -> None:
         """Tests COMPRESS_DELATE_LEVEL correctly affects response data."""
         self.app.config["COMPRESS_DEFLATE_LEVEL"] = -1
         client = self.app.test_client()
@@ -253,7 +257,7 @@ class UrlTests(unittest.TestCase):
 
         self.assertNotEqual(response_size, response1_size)
 
-    def test_zstd_compression_level(self):
+    def test_zstd_compression_level(self) -> None:
         """Tests that COMPRESS_ZSTD_LEVEL correctly affects response data."""
         self.app.config["COMPRESS_ZSTD_LEVEL"] = 1
         client = self.app.test_client()
@@ -276,7 +280,7 @@ class CompressionAlgoTests(unittest.TestCase):
     supported by this extension.
     """
 
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
 
         # Create the app here but don't call `Compress()` on it just yet;
@@ -290,10 +294,10 @@ class CompressionAlgoTests(unittest.TestCase):
         self.small_size = os.path.getsize(small_path) - 1
 
         @self.app.route("/small/")
-        def small():
+        def small() -> str:
             return render_template("small.html")
 
-    def test_setting_compress_algorithm_simple_string(self):
+    def test_setting_compress_algorithm_simple_string(self) -> None:
         """Test that a single entry in `COMPRESS_ALGORITHM` still works.
 
         This is a backwards-compatibility test."""
@@ -301,19 +305,19 @@ class CompressionAlgoTests(unittest.TestCase):
         c = Compress(self.app)
         self.assertTupleEqual(c.enabled_algorithms, ("gzip",))
 
-    def test_setting_compress_algorithm_cs_string(self):
+    def test_setting_compress_algorithm_cs_string(self) -> None:
         """Test that `COMPRESS_ALGORITHM` can be a comma-separated string"""
         self.app.config["COMPRESS_ALGORITHM"] = "gzip, br, zstd"
         c = Compress(self.app)
         self.assertTupleEqual(c.enabled_algorithms, ("gzip", "br", "zstd"))
 
-    def test_setting_compress_algorithm_list(self):
+    def test_setting_compress_algorithm_list(self) -> None:
         """Test that `COMPRESS_ALGORITHM` can be a list of strings"""
         self.app.config["COMPRESS_ALGORITHM"] = ["gzip", "br", "deflate"]
         c = Compress(self.app)
         self.assertTupleEqual(c.enabled_algorithms, ("gzip", "br", "deflate"))
 
-    def test_one_algo_supported(self):
+    def test_one_algo_supported(self) -> None:
         """Tests requesting a single supported compression algorithm"""
         accept_encoding = "gzip"
         self.app.config["COMPRESS_ALGORITHM"] = ["br", "gzip"]
@@ -321,7 +325,7 @@ class CompressionAlgoTests(unittest.TestCase):
         chosen_algorithm = _choose_algorithm(c.enabled_algorithms, accept_encoding)
         self.assertEqual(chosen_algorithm, "gzip")
 
-    def test_one_algo_unsupported(self):
+    def test_one_algo_unsupported(self) -> None:
         """Tests requesting single unsupported compression algorithm"""
         accept_encoding = "some-alien-algorithm"
         self.app.config["COMPRESS_ALGORITHM"] = ["br", "gzip"]
@@ -329,7 +333,7 @@ class CompressionAlgoTests(unittest.TestCase):
         chosen_algorithm = _choose_algorithm(c.enabled_algorithms, accept_encoding)
         self.assertIsNone(chosen_algorithm)
 
-    def test_multiple_algos_supported(self):
+    def test_multiple_algos_supported(self) -> None:
         """Tests requesting multiple supported compression algorithms"""
         accept_encoding = "br, gzip, zstd"
         self.app.config["COMPRESS_ALGORITHM"] = ["zstd", "br", "gzip"]
@@ -338,7 +342,7 @@ class CompressionAlgoTests(unittest.TestCase):
         chosen_algorithm = _choose_algorithm(c.enabled_algorithms, accept_encoding)
         self.assertEqual(chosen_algorithm, "zstd")
 
-    def test_multiple_algos_unsupported(self):
+    def test_multiple_algos_unsupported(self) -> None:
         """Tests requesting multiple unsupported compression algorithms"""
         accept_encoding = "future-algo, alien-algo, forbidden-algo"
         self.app.config["COMPRESS_ALGORITHM"] = ["zstd", "br", "gzip"]
@@ -346,7 +350,7 @@ class CompressionAlgoTests(unittest.TestCase):
         chosen_algorithm = _choose_algorithm(c.enabled_algorithms, accept_encoding)
         self.assertIsNone(chosen_algorithm)
 
-    def test_multiple_algos_with_wildcard(self):
+    def test_multiple_algos_with_wildcard(self) -> None:
         """Request multiple unsupported compression algorithms and a wildcard"""
         accept_encoding = "future-algo, alien-algo, forbidden-algo, *"
         self.app.config["COMPRESS_ALGORITHM"] = ["zstd", "br", "gzip"]
@@ -355,7 +359,7 @@ class CompressionAlgoTests(unittest.TestCase):
         chosen_algorithm = _choose_algorithm(c.enabled_algorithms, accept_encoding)
         self.assertEqual(chosen_algorithm, "zstd")
 
-    def test_multiple_algos_with_different_quality(self):
+    def test_multiple_algos_with_different_quality(self) -> None:
         """Request multiple supported compression algorithms with different q-factors"""
         accept_encoding = "zstd;q=0.8, br;q=0.9, gzip;q=0.5"
         self.app.config["COMPRESS_ALGORITHM"] = ["zstd", "br", "gzip"]
@@ -363,7 +367,7 @@ class CompressionAlgoTests(unittest.TestCase):
         chosen_algorithm = _choose_algorithm(c.enabled_algorithms, accept_encoding)
         self.assertEqual(chosen_algorithm, "br")
 
-    def test_multiple_algos_with_equal_quality(self):
+    def test_multiple_algos_with_equal_quality(self) -> None:
         """Request multiple supported compression algorithms with equal q-factors"""
         accept_encoding = "zstd;q=0.5, br;q=0.5, gzip;q=0.5"
         self.app.config["COMPRESS_ALGORITHM"] = ["gzip", "br", "zstd"]
@@ -372,7 +376,7 @@ class CompressionAlgoTests(unittest.TestCase):
         chosen_algorithm = _choose_algorithm(c.enabled_algorithms, accept_encoding)
         self.assertEqual(chosen_algorithm, "gzip")
 
-    def test_default_quality_is_1(self):
+    def test_default_quality_is_1(self) -> None:
         """Tests that when making mixed-quality requests, the default q-factor is 1.0"""
         accept_encoding = "deflate, br;q=0.999, gzip;q=0.5"
         self.app.config["COMPRESS_ALGORITHM"] = ["gzip", "br", "deflate"]
@@ -380,7 +384,7 @@ class CompressionAlgoTests(unittest.TestCase):
         chosen_algorithm = _choose_algorithm(c.enabled_algorithms, accept_encoding)
         self.assertEqual(chosen_algorithm, "deflate")
 
-    def test_default_wildcard_quality_is_0(self):
+    def test_default_wildcard_quality_is_0(self) -> None:
         """Tests that a wildcard has a default q-factor of 0.0"""
         accept_encoding = "br;q=0.001, *"
         self.app.config["COMPRESS_ALGORITHM"] = ["gzip", "br", "deflate"]
@@ -388,7 +392,7 @@ class CompressionAlgoTests(unittest.TestCase):
         chosen_algorithm = _choose_algorithm(c.enabled_algorithms, accept_encoding)
         self.assertEqual(chosen_algorithm, "br")
 
-    def test_wildcard_quality(self):
+    def test_wildcard_quality(self) -> None:
         """Tests that a wildcard with q=0 is discarded"""
         accept_encoding = "*;q=0"
         self.app.config["COMPRESS_ALGORITHM"] = ["gzip", "br", "deflate"]
@@ -396,7 +400,7 @@ class CompressionAlgoTests(unittest.TestCase):
         chosen_algorithm = _choose_algorithm(c.enabled_algorithms, accept_encoding)
         self.assertIsNone(chosen_algorithm)
 
-    def test_identity(self):
+    def test_identity(self) -> None:
         """Tests that identity is understood"""
         accept_encoding = "identity;q=1, br;q=0.5, *;q=0"
         self.app.config["COMPRESS_ALGORITHM"] = ["gzip", "br", "deflate"]
@@ -404,7 +408,7 @@ class CompressionAlgoTests(unittest.TestCase):
         chosen_algorithm = _choose_algorithm(c.enabled_algorithms, accept_encoding)
         self.assertIsNone(chosen_algorithm)
 
-    def test_chrome_ranged_requests(self):
+    def test_chrome_ranged_requests(self) -> None:
         """Tests that Chrome ranged requests behave as expected"""
         accept_encoding = "identity;q=1, *;q=0"
         self.app.config["COMPRESS_ALGORITHM"] = ["gzip", "br", "deflate"]
@@ -412,7 +416,7 @@ class CompressionAlgoTests(unittest.TestCase):
         chosen_algorithm = _choose_algorithm(c.enabled_algorithms, accept_encoding)
         self.assertIsNone(chosen_algorithm)
 
-    def test_content_encoding_is_correct(self):
+    def test_content_encoding_is_correct(self) -> None:
         """Test that the `Content-Encoding` header matches the compression algorithm"""
         self.app.config["COMPRESS_ALGORITHM"] = ["zstd", "br", "gzip", "deflate"]
         Compress(self.app)
@@ -443,7 +447,7 @@ class CompressionAlgoTests(unittest.TestCase):
 
 
 class CompressionPerViewTests(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.app = Flask(__name__)
         self.app.testing = True
         self.app.config["COMPRESS_REGISTER"] = False
@@ -451,15 +455,15 @@ class CompressionPerViewTests(unittest.TestCase):
         compress.init_app(self.app)
 
         @self.app.route("/route1/")
-        def view_1():
+        def view_1() -> str:
             return render_template("large.html")
 
         @self.app.route("/route2/")
         @compress.compressed()
-        def view_2():
+        def view_2() -> str:
             return render_template("large.html")
 
-    def test_compression(self):
+    def test_compression(self) -> None:
         client = self.app.test_client()
         headers = [("Accept-Encoding", "deflate")]
 
@@ -474,7 +478,7 @@ class CompressionPerViewTests(unittest.TestCase):
 
 
 class StreamTests(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.app = Flask(__name__)
         self.app.testing = True
 
@@ -489,14 +493,14 @@ class StreamTests(unittest.TestCase):
         self.file_size = os.path.getsize(self.file_path)
 
         @self.app.route("/stream/large")
-        def stream():
-            def _stream():
+        def stream() -> Response:
+            def _stream() -> Iterator[str]:
                 with open(self.file_path) as f:
                     yield from f.readlines()
 
             return self.app.response_class(_stream(), mimetype="text/html")
 
-    def test_no_compression_stream(self):
+    def test_no_compression_stream(self) -> None:
         """Tests compression is skipped when COMPRESS_STREAMS is False"""
         Compress(self.app)
         self.app.config["COMPRESS_STREAMS"] = False
@@ -509,7 +513,7 @@ class StreamTests(unittest.TestCase):
             self.assertEqual(response.is_streamed, True)
             self.assertEqual(self.file_size, len(response.data))
 
-    def test_compression_stream(self):
+    def test_compression_stream(self) -> None:
         Compress(self.app)
         client = self.app.test_client()
         with open(self.file_path, "rb") as f:
@@ -534,7 +538,7 @@ class StreamTests(unittest.TestCase):
 
 
 class StreamTestsWithETags(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.app = Flask(__name__, static_folder="web", static_url_path="/path")
         self.app.testing = True
 
@@ -546,8 +550,8 @@ class StreamTestsWithETags(unittest.TestCase):
         Compress(self.app)
 
         @self.app.route("/stream/large")
-        def stream():
-            def _stream():
+        def stream() -> Response:
+            def _stream() -> Iterator[str]:
                 with open(self.file_path) as f:
                     yield from f.readlines()
 
@@ -556,7 +560,7 @@ class StreamTestsWithETags(unittest.TestCase):
             rv.set_etag("stream-etag", weak=False)
             return rv
 
-    def test_conditionals_are_skipped_on_streaming(self):
+    def test_conditionals_are_skipped_on_streaming(self) -> None:
         client = self.app.test_client()
 
         r1 = client.get("/stream/large", headers=[("Accept-Encoding", "br")])
@@ -579,7 +583,7 @@ class StreamTestsWithETags(unittest.TestCase):
         self.assertEqual(r1.headers.get("Content-Encoding"), "br")
         r2.close()
 
-    def test_static_exception_to_conditionals(self):
+    def test_static_exception_to_conditionals(self) -> None:
         # Here we test that the static endpoint, which is using streaming responses,
         # still respects conditional requests even when streaming.
         # We use a custom static folder and static url path to show that the test
@@ -596,6 +600,7 @@ class StreamTestsWithETags(unittest.TestCase):
         self.assertIn("Content-Encoding", r1.headers)
         self.assertEqual(r1.headers.get("Content-Encoding"), "br")
         self.assertIsNotNone(tag)
+        assert tag is not None
         self.assertEqual(tag[-3:], ":br")
         self.assertFalse(is_weak)
         r1.close()
@@ -612,7 +617,7 @@ class StreamTestsWithETags(unittest.TestCase):
 
 
 class CachingCompressionTests(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         # We keep track of the number of times the view is called
         self.view_calls = 0
         self.tmpdir = tempfile.TemporaryDirectory()
@@ -628,7 +633,7 @@ class CachingCompressionTests(unittest.TestCase):
         )
         cache.init_app(self.app)
 
-        def get_cache_key(request):
+        def get_cache_key(request: Request) -> str:
             return request.url
 
         compress = Compress()
@@ -638,14 +643,14 @@ class CachingCompressionTests(unittest.TestCase):
         compress.cache_key = get_cache_key
 
         @self.app.route("/route/")
-        def view():
+        def view() -> str:
             self.view_calls += 1
             return render_template("large.html")
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         self.tmpdir.cleanup()
 
-    def test_compression(self):
+    def test_compression(self) -> None:
         # Here we are testing cache pollution where the same query is cached
         # but with different compression algorithms. The cache key should include
         # the compression algorithm so that the cache is not polluted.
@@ -669,13 +674,13 @@ class CachingCompressionTests(unittest.TestCase):
 
 
 class DictCacheTests(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         # We keep track of the number of times the cache key function is called
         self.cache_key_calls = 0
         self.app = Flask(__name__)
         self.app.testing = True
 
-        def get_cache_key(request):
+        def get_cache_key(request: Request) -> str:
             self.cache_key_calls += 1
             return request.url
 
@@ -686,10 +691,10 @@ class DictCacheTests(unittest.TestCase):
         compress.cache_key = get_cache_key
 
         @self.app.route("/route/")
-        def view():
+        def view() -> str:
             return render_template("large.html")
 
-    def test_compression(self):
+    def test_compression(self) -> None:
         client = self.app.test_client()
 
         headers = [("Accept-Encoding", "deflate")]
@@ -708,7 +713,7 @@ class DictCacheTests(unittest.TestCase):
 
 
 class ETagTests(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.app = Flask(__name__)
         self.app.testing = True
         self.app.config["COMPRESS_ALGORITHM"] = ["gzip"]
@@ -717,30 +722,32 @@ class ETagTests(unittest.TestCase):
         Compress(self.app)
 
         @self.app.route("/strong/")
-        def strong():
+        def strong() -> Response:
             rv = make_response(render_template("large.html"))
             rv.set_etag("abc123", weak=False)
-            return rv.make_conditional(request)
+            rv.make_conditional(request)
+            return rv
 
         @self.app.route("/strong-compress-conditional/")
-        def strong_compress_conditional():
+        def strong_compress_conditional() -> Response:
             rv = make_response(render_template("large.html"))
             rv.set_etag("abc123", weak=False)
             return rv
 
         @self.app.route("/weak/")
-        def weak():
+        def weak() -> Response:
             rv = make_response(render_template("large.html"))
             rv.set_etag("abc123", weak=True)
-            return rv.make_conditional(request)
+            rv.make_conditional(request)
+            return rv
 
         @self.app.route("/weak-compress-conditional/")
-        def weak_compress_conditional():
+        def weak_compress_conditional() -> Response:
             rv = make_response(render_template("large.html"))
             rv.set_etag("abc123", weak=True)
             return rv
 
-    def test_strong_etag_is_mutated_with_suffix_and_remains_strong(self):
+    def test_strong_etag_is_mutated_with_suffix_and_remains_strong(self) -> None:
         client = self.app.test_client()
         r = client.get("/strong/", headers=[("Accept-Encoding", "gzip")])
         self.assertEqual(r.status_code, 200)
@@ -751,7 +758,7 @@ class ETagTests(unittest.TestCase):
         self.assertEqual(tag, "abc123:gzip")
         self.assertEqual(int(r.headers["Content-Length"]), len(r.data))
 
-    def test_weak_etag_is_preserved(self):
+    def test_weak_etag_is_preserved(self) -> None:
         client = self.app.test_client()
         r = client.get("/weak/", headers=[("Accept-Encoding", "gzip")])
         self.assertEqual(r.status_code, 200)
@@ -762,7 +769,7 @@ class ETagTests(unittest.TestCase):
         # No :gzip suffix when flag is False
         self.assertEqual(tag, "abc123")
 
-    def test_conditional_get_uses_strong_compressed_representation(self):
+    def test_conditional_get_uses_strong_compressed_representation(self) -> None:
         self.app.config["COMPRESS_EVALUATE_CONDITIONAL_REQUEST"] = False
         client = self.app.test_client()
         r1 = client.get("/strong/", headers=[("Accept-Encoding", "gzip")])
@@ -779,7 +786,7 @@ class ETagTests(unittest.TestCase):
         # We would expect a 304 but it does not because of etag mismatch
         self.assertEqual(r2.status_code, 200)
 
-    def test_conditional_get_uses_weak_compressed_representation(self):
+    def test_conditional_get_uses_weak_compressed_representation(self) -> None:
         self.app.config["COMPRESS_EVALUATE_CONDITIONAL_REQUEST"] = False
         client = self.app.test_client()
         r1 = client.get("/weak/", headers=[("Accept-Encoding", "gzip")])
@@ -798,7 +805,7 @@ class ETagTests(unittest.TestCase):
 
     def test_conditional_get_uses_strong_compressed_representation_evaluate_conditional(
         self,
-    ):
+    ) -> None:
         client = self.app.test_client()
         r1 = client.get(
             "/strong-compress-conditional/", headers=[("Accept-Encoding", "gzip")]
@@ -818,7 +825,7 @@ class ETagTests(unittest.TestCase):
 
     def test_conditional_get_uses_weak_compressed_representation_evaluate_conditional(
         self,
-    ):
+    ) -> None:
         client = self.app.test_client()
         r1 = client.get(
             "/weak-compress-conditional/", headers=[("Accept-Encoding", "gzip")]

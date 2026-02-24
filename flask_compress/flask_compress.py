@@ -306,16 +306,16 @@ class Compress:
 
 def _compress_data(app: Flask, data: bytes, algorithm: str) -> bytes:
     if algorithm == "zstd":
-        return compression.zstd.compress(data, app.config["COMPRESS_ZSTD_LEVEL"])
+        return compression.zstd.compress(data, app.config["COMPRESS_ZSTD_LEVEL"])  # type: ignore[no-any-return]
 
     if algorithm == "gzip":
-        return compression.gzip.compress(data, app.config["COMPRESS_LEVEL"])
+        return compression.gzip.compress(data, app.config["COMPRESS_LEVEL"])  # type: ignore[no-any-return]
 
     if algorithm == "deflate":
-        return compression.zlib.compress(data, app.config["COMPRESS_DEFLATE_LEVEL"])
+        return compression.zlib.compress(data, app.config["COMPRESS_DEFLATE_LEVEL"])  # type: ignore[no-any-return]
 
     if algorithm == "br":
-        return brotli.compress(
+        return brotli.compress(  # type: ignore[no-any-return]
             data,
             mode=app.config["COMPRESS_BR_MODE"],
             quality=app.config["COMPRESS_BR_LEVEL"],
@@ -329,13 +329,13 @@ def _compress_data(app: Flask, data: bytes, algorithm: str) -> bytes:
 def _uncompress_data(data: bytes, algorithm: str) -> bytes:
     # This is used for tests purposes only.
     if algorithm == "zstd":
-        return compression.zstd.decompress(data)
+        return compression.zstd.decompress(data)  # type: ignore[no-any-return]
     if algorithm == "gzip":
-        return compression.gzip.decompress(data)
+        return compression.gzip.decompress(data)  # type: ignore[no-any-return]
     if algorithm == "deflate":
-        return compression.zlib.decompress(data)
+        return compression.zlib.decompress(data)  # type: ignore[no-any-return]
     if algorithm == "br":
-        return brotli.decompress(data)
+        return brotli.decompress(data)  # type: ignore[no-any-return]
 
     raise ValueError(f"Unknown compression algorithm: {algorithm}")
 

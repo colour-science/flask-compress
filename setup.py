@@ -16,6 +16,7 @@ setup(
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
     packages=find_packages(exclude=["tests"]),
+    package_data={"flask_compress": ["py.typed"]},
     include_package_data=True,
     platforms="any",
     python_requires=">=3.9",

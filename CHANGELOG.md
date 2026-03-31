@@ -2,6 +2,11 @@
 
 All notable changes to `flask-compress` will be documented in this file.
 
+## 1.24 (2026-03-31)
+
+- add mypy annotations and mark it as checkable, [#76](https://github.com/colour-science/flask-compress/pull/76) by @orborde
+- enable trusted publishing, allowing GitHub Actions to publish releases to PyPI without long lived credentials, [#78](https://github.com/colour-science/flask-compress/issues/78) by @alexprengere
+
 ## 1.23 (2025-11-06)
 
 - add `gzip` to supported algorithms for streaming responses, but not in the `COMPRESS_ALGORITHM_STREAMING` default values, so users have to explicitly enable it
@@ -33,7 +38,7 @@ All notable changes to `flask-compress` will be documented in this file.
 ## 1.19 (2025-10-20)
 
 - Use `backports.zstd` instead of `pyzstd`, [#63](https://github.com/colour-science/flask-compress/pull/63) by @alexprengere
-- Add new behaviours to improve Etag compatibility,  [#67](https://github.com/colour-science/flask-compress/pull/67), by @jlopex
+- Add new behaviours to improve Etag compatibility, [#67](https://github.com/colour-science/flask-compress/pull/67), by @jlopex
     - weak etags are no longer modified by flask-compress
     - add new `COMPRESS_EVALUATE_CONDITIONAL_REQUEST` config option to call `response.make_conditional(request)` after compression, this ensures that 304 Not Modified responses are correctly generated when the client sends conditional requests with `If-None-Match` (defaults to `False`)
 

@@ -68,7 +68,7 @@ jobs:
         pip install --upgrade wheel setuptools build
     - name: Build package
       run: python -m build -s -w -o dist/
-    - uses: actions/upload-artifact@v6
+    - uses: actions/upload-artifact@v7
       with:
         name: dist
         path: dist
@@ -83,7 +83,7 @@ jobs:
         python-version: "3.12"
     - name: Install dependencies
       run: pip install twine
-    - uses: actions/download-artifact@v7
+    - uses: actions/download-artifact@v8
       with:
         name: dist
         path: dist
@@ -95,7 +95,7 @@ jobs:
     needs: [dist_check]
     name: PyPI upload
     steps:
-    - uses: actions/download-artifact@v7
+    - uses: actions/download-artifact@v8
       with:
         name: dist
         path: dist

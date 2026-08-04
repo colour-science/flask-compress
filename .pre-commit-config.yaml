@@ -13,7 +13,7 @@ repos:
       - id: "check-useless-excludes"
 
   - repo: "https://github.com/pre-commit/pre-commit-hooks"
-    rev: "v6.0.0"
+    rev: "3e8a8703264a2f4a69428a0aa4dcb512790b2c8c"  # frozen: v6.0.0
     hooks:
       - id: "check-added-large-files"
       - id: "check-merge-conflict"
@@ -25,7 +25,7 @@ repos:
       - id: "trailing-whitespace"
 
   - repo: "https://github.com/asottile/pyupgrade"
-    rev: "v3.21.2"
+    rev: "75992aaa40730136014f34227e0135f63fc951b4"  # frozen: v3.21.2
     hooks:
       - id: "pyupgrade"
         name: "Enforce Python 3.9+ idioms"
@@ -33,31 +33,31 @@ repos:
           - "--py39-plus"
 
   - repo: "https://github.com/psf/black-pre-commit-mirror"
-    rev: "26.3.1"
+    rev: "4160603246a6b365d4a2af661c6d71b0a0f50478"  # frozen: 26.5.1
     hooks:
       - id: "black"
 
   - repo: "https://github.com/pycqa/flake8"
-    rev: "7.3.0"
+    rev: "c48217e1fc006c2dddd14df54e83b67da15de5cd"  # frozen: 7.3.0
     hooks:
       - id: "flake8"
         additional_dependencies:
           - "flake8-bugbear==24.8.19"
 
   - repo: "https://github.com/pre-commit/mirrors-mypy"
-    rev: "v1.20.0"
+    rev: "41e691678310dfd3833f7ab4e180ddb014310356"  # frozen: v2.3.0
     hooks:
       - id: "mypy"
         additional_dependencies:
           - "flask>=3.0"
 
   - repo: "https://github.com/python-jsonschema/check-jsonschema"
-    rev: "0.37.1"
+    rev: "6b63472e72e1a91ed8a2f6d483790dfb644fa1d3"  # frozen: 0.37.4
     hooks:
       - id: "check-dependabot"
       - id: "check-github-workflows"
 
   - repo: "https://github.com/rhysd/actionlint"
-    rev: "v1.7.12"
+    rev: "914e7df21a07ef503a81201c76d2b11c789d3fca"  # frozen: v1.7.12
     hooks:
       - id: "actionlint"

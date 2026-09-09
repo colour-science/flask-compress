@@ -15,7 +15,14 @@ try:
 except ImportError:
     import brotli
 
-from flask import Flask, after_this_request, current_app, request, stream_with_context
+from flask import (
+    Flask,
+    after_this_request,
+    current_app,
+    make_response,
+    request,
+    stream_with_context,
+)
 from flask.wrappers import Response
 
 from .compat import compression
@@ -27,7 +34,6 @@ class CacheBackend(Protocol):
 
 
 class DictCache:
-
     def __init__(self) -> None:
         self.data: dict[str, bytes] = {}
 
@@ -219,9 +225,11 @@ class Compress:
         if app.config["COMPRESS_REGISTER"] and app.config["COMPRESS_MIMETYPES"]:
             app.after_request(self.after_request)
 
-    def after_request(self, response: Response) -> Response:
-        app = self.app or current_app
+    def after_request(self, response: Response | None) -> Response:
+        if not response:
+            return make_response("", 204)
 
+        app = self.app or current_app
         vary = response.headers.get("Vary")
         if not vary:
             response.headers["Vary"] = "Accept-Encoding"

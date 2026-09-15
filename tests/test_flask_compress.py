@@ -271,6 +271,14 @@ class UrlTests(unittest.TestCase):
 
         self.assertNotEqual(response1_size, response11_size)
 
+    def test_when_response_empty(self) -> None:
+        """Tests that after_request returns 204 when response is None."""
+        compress = Compress(self.app)
+        with self.app.app_context():
+            r1 = compress.after_request(None)
+        self.assertEqual(r1.status_code, 204)
+        self.assertEqual(r1.get_data(as_text=True), "")
+
 
 class CompressionAlgoTests(unittest.TestCase):
     """

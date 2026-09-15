@@ -2,6 +2,11 @@
 
 All notable changes to `flask-compress` will be documented in this file.
 
+## 1.25 (development)
+
+- support, and test against, Python 3.15
+- return an empty `204 No Content` response when the Flask `after_request` hook receives no response, [#83](https://github.com/colour-science/flask-compress/pull/83) by @mmdbalkhi
+
 ## 1.24 (2026-03-31)
 
 - add mypy annotations and mark it as checkable, [#76](https://github.com/colour-science/flask-compress/pull/76) by @orborde

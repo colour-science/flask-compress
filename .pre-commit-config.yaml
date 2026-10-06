@@ -33,26 +33,26 @@ repos:
           - "--py39-plus"
 
   - repo: "https://github.com/psf/black-pre-commit-mirror"
-    rev: "4160603246a6b365d4a2af661c6d71b0a0f50478"  # frozen: 26.5.1
+    rev: "96ae3e5802f3fe2d551e703e18f0a367d1a81ac2"  # frozen: 26.10.0
     hooks:
       - id: "black"
 
   - repo: "https://github.com/pycqa/flake8"
-    rev: "c48217e1fc006c2dddd14df54e83b67da15de5cd"  # frozen: 7.3.0
+    rev: "7eccf20b526fe4f2230bf9afeeef2fc9f97faf8d"  # frozen: 7.4.1
     hooks:
       - id: "flake8"
         additional_dependencies:
           - "flake8-bugbear==24.8.19"
 
   - repo: "https://github.com/pre-commit/mirrors-mypy"
-    rev: "41e691678310dfd3833f7ab4e180ddb014310356"  # frozen: v2.3.0
+    rev: "2834ec6639549dd6796205c8f011dedcd587288b"  # frozen: v2.4.0
     hooks:
       - id: "mypy"
         additional_dependencies:
           - "flask>=3.0"
 
   - repo: "https://github.com/python-jsonschema/check-jsonschema"
-    rev: "6b63472e72e1a91ed8a2f6d483790dfb644fa1d3"  # frozen: 0.37.4
+    rev: "0494aa7fa1314e98913a41227d8f0a515b2c1049"  # frozen: 0.38.2
     hooks:
       - id: "check-dependabot"
       - id: "check-github-workflows"

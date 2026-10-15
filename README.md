@@ -24,6 +24,9 @@ If no requested compression algorithm is supported by the server, we don't compr
 hand, multiple suitable algorithms are found and are requested with the same quality factor, we choose the first one
 defined in the `COMPRESS_ALGORITHM` option (see below).
 
+> Some CPython distributions are built without [optional compression modules](https://docs.python.org/3.15/using/configure.html#optional-module-requirements) such as `gzip`, `zlib`, or `zstd`.
+> Flask-Compress detects the algorithms available in the current Python environment and raises a `ValueError` during
+> initialization if `COMPRESS_ALGORITHM` or `COMPRESS_ALGORITHM_STREAMING` includes an unavailable algorithm.
 
 ## Installation
 

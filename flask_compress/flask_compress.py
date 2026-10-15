@@ -25,7 +25,7 @@ from flask import (
 )
 from flask.wrappers import Response
 
-from .compat import compression
+from .compat import compression, SUPPORTED_ALGORITHMS
 
 
 class CacheBackend(Protocol):
@@ -126,6 +126,15 @@ def _format(algo: str | list[str]) -> tuple[str, ...]:
         return tuple(algo)
 
 
+def _validate(*algorithms: str) -> None:
+    for algo in algorithms:
+        if algo not in SUPPORTED_ALGORITHMS:
+            raise ValueError(
+                f"Unsupported compression algorithm {algo!r},"
+                f" should be in {SUPPORTED_ALGORITHMS}"
+            )
+
+
 class Compress:
     """
     The Compress object allows your application to use Flask-Compress.
@@ -221,6 +230,7 @@ class Compress:
         self.streaming_endpoint_with_conditional = set(
             app.config["COMPRESS_STREAMING_ENDPOINT_CONDITIONAL"]
         )
+        _validate(*self.enabled_algorithms, *self.streaming_algorithms)
 
         if app.config["COMPRESS_REGISTER"] and app.config["COMPRESS_MIMETYPES"]:
             app.after_request(self.after_request)

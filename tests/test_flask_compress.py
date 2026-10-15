@@ -3,6 +3,7 @@ import os
 import tempfile
 import unittest
 from collections.abc import Iterator
+from unittest.mock import patch
 
 from flask import (
     Flask,
@@ -133,6 +134,30 @@ class InitTests(unittest.TestCase):
     def test_delayed_init(self) -> None:
         compress = Compress()
         compress.init_app(self.app)
+
+    def test_unavailable_compression_algorithms_raise(self) -> None:
+        self.app.config["COMPRESS_ALGORITHM"] = ["zstd", "br", "gzip", "deflate"]
+        self.app.config["COMPRESS_ALGORITHM_STREAMING"] = ["zstd", "gzip", "deflate"]
+
+        with patch(
+            "flask_compress.flask_compress.SUPPORTED_ALGORITHMS",
+            {"br", "zstd"},
+        ):
+            with self.assertRaises(ValueError) as e:
+                Compress(self.app)
+            self.assertIn("Unsupported compression algorithm 'gzip'", str(e.exception))
+
+    def test_unavailable_streaming_compression_algorithms_raise(self) -> None:
+        self.app.config["COMPRESS_ALGORITHM"] = ["br"]
+        self.app.config["COMPRESS_ALGORITHM_STREAMING"] = ["zstd", "br", "deflate"]
+
+        with patch(
+            "flask_compress.flask_compress.SUPPORTED_ALGORITHMS",
+            {"br"},
+        ):
+            with self.assertRaises(ValueError) as e:
+                Compress(self.app)
+            self.assertIn("Unsupported compression algorithm 'zstd'", str(e.exception))
 
 
 class UrlTests(unittest.TestCase):

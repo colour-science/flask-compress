@@ -18,11 +18,7 @@ from flask_caching import Cache
 from werkzeug.test import TestResponse
 
 from flask_compress import Compress, DictCache
-from flask_compress.flask_compress import (
-    _choose_algorithm,
-    _uncompress_data,
-    SUPPORTED_ALGORITHMS,
-)
+from flask_compress.flask_compress import _choose_algorithm, _uncompress_data
 
 ALGORITHMS = ("gzip", "deflate", "br", "zstd")
 
@@ -76,9 +72,11 @@ class DefaultsTest(unittest.TestCase):
 
     def test_algorithm_default(self) -> None:
         """Tests COMPRESS_ALGORITHM default value is correctly set."""
-        self.assertEqual(self.app.config["COMPRESS_ALGORITHM"], SUPPORTED_ALGORITHMS)
+        self.assertEqual(
+            self.app.config["COMPRESS_ALGORITHM"], ["zstd", "br", "gzip", "deflate"]
+        )
 
-    def test_algorithm_streaming(self) -> None:
+    def test_algorithm_default_streaming(self) -> None:
         """Tests COMPRESS_ALGORITHM_STREAMING default value is correctly set."""
         self.assertEqual(
             self.app.config["COMPRESS_ALGORITHM_STREAMING"], ["zstd", "br", "deflate"]

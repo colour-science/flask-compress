@@ -25,8 +25,10 @@ hand, multiple suitable algorithms are found and are requested with the same qua
 defined in the `COMPRESS_ALGORITHM` option (see below).
 
 > Some CPython distributions are built without [optional compression modules](https://docs.python.org/3.15/using/configure.html#optional-module-requirements) such as `gzip`, `zlib`, or `zstd`.
-> Flask-Compress detects the algorithms available in the current Python environment and raises a `ValueError` during
-> initialization if `COMPRESS_ALGORITHM` or `COMPRESS_ALGORITHM_STREAMING` includes an unavailable algorithm.
+> Flask-Compress detects the algorithms available in the current Python environment, logs a warning for any missing
+> optional compression module, and defaults `COMPRESS_ALGORITHM` and `COMPRESS_ALGORITHM_STREAMING` to the algorithms
+> available in that environment. If either option is explicitly configured with an unavailable algorithm, initialization
+> raises a `ValueError`.
 
 ## Installation
 
@@ -162,8 +164,8 @@ Within your Flask application's settings you can provide the following settings 
 | `COMPRESS_CACHE_KEY` | Specifies the cache key method for lookup/storage of response data. | `None` |
 | `COMPRESS_CACHE_BACKEND` | Specified the backend for storing the cached response data. | `None` |
 | `COMPRESS_REGISTER` | Specifies if compression should be automatically registered. | `True` |
-| `COMPRESS_ALGORITHM` | Supported compression algorithms. | `['zstd', 'br', 'gzip', 'deflate']` |
-| `COMPRESS_ALGORITHM_STREAMING` | Supported compression algorithms for streaming. | `['zstd', 'br', 'deflate']` |
+| `COMPRESS_ALGORITHM` | Supported compression algorithms. | available algorithms from `['zstd', 'br', 'gzip', 'deflate']` |
+| `COMPRESS_ALGORITHM_STREAMING` | Supported compression algorithms for streaming. | available algorithms from `['zstd', 'br', 'deflate']` |
 | `COMPRESS_STREAMS` | Compress streaming responses. | `True` |
 | `COMPRESS_EVALUATE_CONDITIONAL_REQUEST` | Compress evaluates conditional requests. | `True` |
 | `COMPRESS_STREAMING_ENDPOINT_CONDITIONAL` | Streaming endpoints where we evaluate conditional requests. | `["static"]` |

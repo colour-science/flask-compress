@@ -13,12 +13,16 @@
 from __future__ import annotations
 import sys
 import types
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def _import_optional(name: str) -> types.ModuleType | None:
     try:
         return __import__(name)
     except ImportError:
+        logger.warning("Module %s is not available", name)
         return None
 
 

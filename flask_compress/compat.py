@@ -29,10 +29,9 @@ if sys.version_info >= (3, 14):
     _import_optional("compression.zlib")
     _import_optional("compression.zstd")
 else:  # Python <= 3.13
-    from backports import zstd
-
     gzip = _import_optional("gzip")
     zlib = _import_optional("zlib")
+    from backports import zstd
 
     compression = types.SimpleNamespace()
     compression.zstd = zstd
@@ -40,15 +39,3 @@ else:  # Python <= 3.13
         compression.gzip = gzip
     if zlib is not None:
         compression.zlib = zlib
-
-
-# brotli is never part of the stdlib, so we put it there always.
-SUPPORTED_ALGORITHMS = {"br"}
-
-for key, algorithm in [
-    ("gzip", "gzip"),
-    ("zlib", "deflate"),
-    ("zstd", "zstd"),
-]:
-    if hasattr(compression, key):
-        SUPPORTED_ALGORITHMS.add(algorithm)

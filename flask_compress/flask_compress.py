@@ -25,7 +25,24 @@ from flask import (
 )
 from flask.wrappers import Response
 
-from .compat import compression, SUPPORTED_ALGORITHMS
+from .compat import compression
+
+# The compression module that we import from compat may not contain all the algorithms
+# listed in this module, because some of them may not be available in the environment.
+# So we build an explicit list that will be used as default config.
+SUPPORTED_ALGORITHMS: list[str] = []
+SUPPORTED_ALGORITHMS_STREAMING: list[str] = []
+
+for algorithm, key, streaming in (
+    ("zstd", "zstd", True),
+    ("br", None, True),
+    ("gzip", "gzip", False),  # gzip is not by default part of the streaming algorithms
+    ("deflate", "zlib", True),
+):
+    if key is None or hasattr(compression, key):
+        SUPPORTED_ALGORITHMS.append(algorithm)
+        if streaming:
+            SUPPORTED_ALGORITHMS_STREAMING.append(algorithm)
 
 
 class CacheBackend(Protocol):
@@ -213,8 +230,8 @@ class Compress:
             ("COMPRESS_STREAMS", True),
             ("COMPRESS_EVALUATE_CONDITIONAL_REQUEST", True),
             ("COMPRESS_STREAMING_ENDPOINT_CONDITIONAL", ["static"]),
-            ("COMPRESS_ALGORITHM", ["zstd", "br", "gzip", "deflate"]),
-            ("COMPRESS_ALGORITHM_STREAMING", ["zstd", "br", "deflate"]),  # no gzip
+            ("COMPRESS_ALGORITHM", list(SUPPORTED_ALGORITHMS)),
+            ("COMPRESS_ALGORITHM_STREAMING", list(SUPPORTED_ALGORITHMS_STREAMING)),
         ]
 
         for k, v in defaults:

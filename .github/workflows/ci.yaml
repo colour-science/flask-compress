@@ -34,6 +34,11 @@ jobs:
           - '3.15'
           - 'pypy-3.12'
         os: [ubuntu-latest, windows-latest, macos-latest]
+        exclude:
+          # There is an issue with brotlicffi on Windows+PyPy, so we skip that combination for now.
+          - os: windows-latest
+            python-version: 'pypy-3.12'
+
     name: ${{ matrix.os }} - ${{ matrix.python-version }}
     steps:
     - name: Set git to not change line endings

@@ -5,6 +5,7 @@ All notable changes to `flask-compress` will be documented in this file.
 ## 1.26 (development)
 
 - tolerate CPython builds where optional compression modules are unavailable, log warnings for missing modules, default `COMPRESS_ALGORITHM` and `COMPRESS_ALGORITHM_STREAMING` to the algorithms available in the current environment, and fail explicitly when either option contains an unsupported algorithm, fixes [#85](https://github.com/colour-science/flask-compress/issues/85)
+- modernize GitHub Actions workflows
 
 ## 1.25 (2026-09-15)
 
